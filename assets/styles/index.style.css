@@ -1,0 +1,18 @@
+/* ==========================================================
+   SkillRadar — Estilos
+   Preenchido na Etapa 7 (CSS mobile-first, Flexbox, responsivo).
+   Por enquanto só um reset básico para o esqueleto não ficar "cru".
+   ========================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  padding: 2rem;
+}
