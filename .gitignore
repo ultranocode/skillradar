@@ -1,0 +1,18 @@
+# Dependências (caso use npm como ferramenta de dev — bônus)
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Arquivos do sistema operacional
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Configurações de editor
+.vscode/*
+!.vscode/extensions.json
+
+# Arquivos temporários
+*.tmp
