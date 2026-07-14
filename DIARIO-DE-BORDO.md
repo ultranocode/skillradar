@@ -212,6 +212,93 @@ saída e confere-se se ela bate com a lógica esperada:
 
 ---
 
+## Etapa 3 — Dados e persistência (`vagas.json` + `dados.js`)
+
+**Objetivo:** dar ao app uma **fonte de vagas** (buscada de fora, como num sistema real) e uma
+**memória do perfil** (que sobrevive ao recarregar a página). É a camada que *entrega* e *guarda*
+dados — sem conhecer as regras nem a tela.
+
+### O que foi feito
+
+1. Criei a branch `feature/dados` a partir de `develop` e movi o cartão 3 no Trello para
+   **🔨 Em Andamento**.
+2. Criei `assets/dados/vagas.json` com **6 vagas** (o mínimo é 4) de front-end, com requisitos
+   variados de propósito (de 3 a 8 exigências) para gerar percentuais diferentes.
+3. Preenchi `assets/scripts/dados.js` com duas responsabilidades: `carregarVagas()` (fetch) e as
+   funções de perfil no `localStorage`.
+4. Testei a lógica no Node antes de seguir (simulando `fetch` e `localStorage`), cobrindo os 3
+   cenários do fetch e o ciclo salvar/ler/limpar do perfil.
+
+### A ideia central (o que responder no vídeo)
+
+- **`vagas.json` é só dado, sem lógica.** Ele existe fora do código para simular uma API: amanhã as
+  vagas poderiam vir de um servidor e nada no resto do app mudaria. Os campos batem exatamente com a
+  fábrica `criarVagas` do motor (`id, empresa, cargo, requisitos, salario, modalidade, nivel`).
+- **`salario` é número, não texto** (`4200`, não `"R$ 4.200"`), porque o motor **ordena** as vagas
+  por salário no desempate (`b.vaga.salario - a.vaga.salario`) — e não se subtrai texto.
+- **`dados.js` não desenha nada.** Ele só *sinaliza* o que aconteceu; quem mostra "carregando/
+  vazio/erro" na tela é o `main.js` (Etapa 6). Essa é a separação **dados × regras × tela**.
+
+### Os 3 estados do fetch — de onde cada um nasce (RF13)
+
+| Estado | Quem dispara | Como |
+|---|---|---|
+| ⏳ Carregando | `main.js` (antes de chamar) | mostra a mensagem *antes* do `await` |
+| 📭 Vazio | `dados.js` devolve `[]` | o `main` vê `vagas.length === 0` |
+| ❌ Erro | `dados.js` faz `throw` | cai no `catch` do `main`, que mostra o erro (com `aria-live`) |
+
+### O que cada parte faz (e qual RF cumpre)
+
+| Trecho | Papel | RF |
+|---|---|---|
+| `vagas.json` (6 vagas) | catálogo consumido via `fetch` | RF02 |
+| `carregarVagas()` | `fetch` + `async/await` + `try/catch` + `response.ok` | RF13 |
+| `salvarPerfil(perfil)` | objeto → texto (`JSON.stringify`) → `setItem` | RF14 |
+| `carregarPerfil()` | `getItem` → trata `null` → `JSON.parse` | RF14 |
+| `limparPerfil()` | `removeItem` (para um botão "recomeçar") | RF14 |
+
+### Conceitos envolvidos
+
+- **`async`/`await`**: `async` faz a função devolver uma *Promise*; `await` **pausa** naquela linha
+  até a resposta chegar, **sem congelar** a página. É o jeito moderno (e legível) de esperar.
+- **`response.ok` + `throw`**: um `fetch` com erro **HTTP** (404, 500) **não** cai sozinho no
+  `catch` — a Promise "deu certo", só trouxe um status ruim. Por isso checamos `response.ok` na mão
+  e lançamos o erro nós mesmos.
+- **`try/catch`**: envolve o que pode falhar (rede caiu, JSON quebrado). O `catch` centraliza o
+  tratamento; aqui ele loga e **re-lança** para o `main` decidir o que a pessoa vê.
+- **`localStorage` só guarda texto**: por isso o par `JSON.stringify` (ao salvar) e `JSON.parse`
+  (ao ler). Sem isso, um objeto viraria a string inútil `"[object Object]"`.
+- **Tratar `null`**: `getItem` devolve `null` quando a chave nunca existiu (primeira visita).
+  Checar isso explicitamente evita bugs silenciosos mais tarde.
+
+### Como testar
+
+**Rápido, no Node (só a lógica):** simulei `fetch` e `localStorage` num script de bancada e conferi
+a saída — os 6 valores esperados bateram:
+
+```
+=== RF13: carregarVagas ===
+  sucesso → 6 vagas (esperado 6)
+  vazio   → 0 vagas (esperado 0)
+  erro    → throw capturado OK: Falha ao carregar vagas (HTTP 404).
+=== RF14: localStorage do perfil ===
+  1a leitura (nada salvo) → null (esperado null)
+  apos salvar             → {"nome":"Diego","habilidades":["HTML","CSS","JavaScript"]}
+  apos limpar             → null (esperado null)
+```
+
+**De verdade, no navegador (Etapa 6):** o `fetch` só funciona servido por HTTP — abrir o
+`index.html` pelo **Live Server** (não com duplo-clique `file://`, que bloqueia o fetch). No console
+(F12) dá pra testar na mão: `localStorage.getItem("skillradar:perfil")` mostra o perfil salvo.
+
+### Dica
+
+Se abrir a página por duplo-clique (`file://`) o `fetch` falha com erro de CORS — **não é bug do
+código**, é segurança do navegador. Sempre usar **Live Server** (ou outro servidor local). Esse é,
+inclusive, um ótimo candidato a "bug caçado com `debugger`" do RF16 (Etapa 8).
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
