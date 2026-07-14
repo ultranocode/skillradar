@@ -16,3 +16,30 @@ body {
   line-height: 1.5;
   padding: 2rem;
 }
+
+/* ==========================================================
+   Acessibilidade (parte do cartão HTML semântico — RF09)
+   O visual completo vem na Etapa 7; aqui só o essencial de a11y.
+   ========================================================== */
+
+/* Skip link: fica fora da tela (não some para leitores de tela),
+   e "salta" para o topo quando recebe foco pelo Tab. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Foco visível (RF09): NÃO removemos o outline padrão; reforçamos.
+   :focus-visible aparece só na navegação por teclado, não no clique. */
+:focus-visible {
+  outline: 3px solid #4361ee;
+  outline-offset: 2px;
+}
