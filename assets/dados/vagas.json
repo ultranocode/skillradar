@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "empresa": "Nuvem Digital",
+    "cargo": "Desenvolvedor(a) Front-End Júnior",
+    "requisitos": ["HTML", "CSS", "JavaScript", "Git"],
+    "salario": 4200,
+    "modalidade": "Remoto",
+    "nivel": "Júnior"
+  },
+  {
+    "id": 2,
+    "empresa": "Loja Viva E-commerce",
+    "cargo": "Estágio em Front-End",
+    "requisitos": ["HTML", "CSS", "JavaScript"],
+    "salario": 1800,
+    "modalidade": "Híbrido",
+    "nivel": "Estágio"
+  },
+  {
+    "id": 3,
+    "empresa": "FinTech Aurora",
+    "cargo": "Desenvolvedor(a) React Pleno",
+    "requisitos": ["HTML", "CSS", "JavaScript", "React", "TypeScript", "Git"],
+    "salario": 8500,
+    "modalidade": "Remoto",
+    "nivel": "Pleno"
+  },
+  {
+    "id": 4,
+    "empresa": "Estúdio Pixel",
+    "cargo": "Front-End com foco em UI",
+    "requisitos": ["HTML", "CSS", "JavaScript", "Figma", "Acessibilidade"],
+    "salario": 5200,
+    "modalidade": "Presencial",
+    "nivel": "Júnior"
+  },
+  {
+    "id": 5,
+    "empresa": "SaaS Conecta",
+    "cargo": "Desenvolvedor(a) Front-End Pleno",
+    "requisitos": ["HTML", "CSS", "JavaScript", "React", "Git", "Testes"],
+    "salario": 7800,
+    "modalidade": "Híbrido",
+    "nivel": "Pleno"
+  },
+  {
+    "id": 6,
+    "empresa": "AgroData Sistemas",
+    "cargo": "Desenvolvedor(a) Front-End Sênior",
+    "requisitos": ["HTML", "CSS", "JavaScript", "React", "TypeScript", "Node", "Git", "Testes"],
+    "salario": 12000,
+    "modalidade": "Remoto",
+    "nivel": "Sênior"
+  }
+]
