@@ -16,3 +16,6 @@ Desktop.ini
 
 # Arquivos temporários
 *.tmp
+
+# Testes manuais de estudo (não fazem parte da entrega)
+testes/

@@ -171,6 +171,45 @@ As habilidades aparecem em minúsculas (`html`, `git`) porque são **normalizada
 comparação não falhar por causa de maiúscula/espaço. Mostrar bonito (com a grafia original)
 é decisão de *apresentação* — fica para a Etapa 6, não é problema do motor.
 
+### Passo a passo: como rodar o teste do motor (com Node)
+
+O `motor.js` é um **módulo ES** (usa `export`), então não dá pra abrir sozinho no navegador —
+ele precisa ser importado por alguém. Para testar só a lógica, sem depender da tela, criei um
+script em `testes/teste-motor.mjs` que **importa** o motor, passa um perfil e um array de vagas
+de exemplo, e imprime o resultado no terminal.
+
+> A pasta `testes/` está no `.gitignore` **de propósito**: é bancada de estudo, não faz parte
+> da entrega (não vai para o repositório).
+
+**Como executar:**
+
+1. No VS Code, abrir o terminal: menu **Terminal → New Terminal** (ou `Ctrl + '`). Ele já abre
+   dentro da pasta do projeto.
+2. Digitar o comando e apertar Enter:
+   ```powershell
+   node testes/teste-motor.mjs
+   ```
+
+**O que cada parte do comando significa:**
+
+- **`node`** — programa que executa JavaScript **fora do navegador**, direto no PC. Roda JS como
+  o navegador roda, mas sem tela — ideal para testar só a *lógica* (o motor).
+- **`testes/teste-motor.mjs`** — o caminho do arquivo, a partir de onde o terminal está (a raiz
+  do projeto). Por isso o caminho curto basta.
+- **`.mjs`** — extensão que avisa o Node "isto é um **módulo ES**", ou seja, que pode usar
+  `import`/`export`. (Um `.js` comum, no Node, por padrão não entende `import`.)
+
+**Como saber se "passou":** não é um teste automático com ✅/❌ — é um teste **visual**. Lê-se a
+saída e confere-se se ela bate com a lógica esperada:
+
+- PixelTech dá **100%** porque o perfil tem exatamente os 4 requisitos dela → `atendeTudo: true`.
+- NovaWeb dá **25%** porque das 4 exigências o perfil só cobre "JavaScript".
+- O contador imprime **1 → 2 → 3** (a *closure* "lembrou" o total entre as chamadas).
+
+**Dica para aprender de verdade:** abrir `testes/teste-motor.mjs`, mudar as `habilidades` do
+`meuPerfil` (ex.: acrescentar `"React"`), salvar e rodar de novo. Os percentuais mudam na hora —
+é a melhor forma de sentir o motor reagindo aos dados de entrada.
+
 ---
 
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
