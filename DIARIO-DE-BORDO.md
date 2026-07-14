@@ -327,6 +327,119 @@ inclusive, um ótimo candidato a "bug caçado com `debugger`" do RF16 (Etapa 8).
 
 ---
 
+## Etapa 4 — HTML semântico + SEO + acessibilidade (`index.html`)
+
+**Branch:** `feature/html-semantico` · **Cartão 4** · **RF09 + SEO + RF15**
+
+Montei o **esqueleto semântico** da página: os *landmarks*, o formulário de perfil completo e os
+"buracos" vazios onde o JavaScript vai injetar as vagas nas próximas etapas. **Nenhuma lógica ainda**
+— validação do form é a Etapa 5, e o render dos cards é a Etapa 6. Aqui é só a estrutura acessível.
+
+### O que cada parte faz (e qual RF cumpre)
+
+| Trecho | Papel | RF |
+|---|---|---|
+| `lang="pt-BR"` | idioma da página (voz do leitor de tela + SEO) | RF09 |
+| `<title>` + `<meta name="description">` | SEO on-page (aba + resultado do Google) | RF09/SEO |
+| `.skip-link` | pular o cabeçalho e ir ao conteúdo pelo teclado | RF09 |
+| `<header>` / `<main>` / `<footer>` | *landmarks* (regiões de navegação) | RF09 |
+| **um único** `<h1>` | topo da hierarquia de títulos | RF09 |
+| `<img … alt="SkillRadar">` | texto alternativo da logo | RF09 |
+| `<label for>` + `id` em cada campo | rótulo acessível ligado ao input | RF09 |
+| `<fieldset>` + `<legend>` | agrupa os checkboxes de habilidades | RF09 |
+| `aria-labelledby` nas `<section>` | nomeia cada região pelo `<h2>` | RF09 |
+| `#status` com `role="status"` + `aria-live="polite"` | anúncio dos 3 estados (carregando/vazio/erro) | RF13 |
+| `<ul id="lista-vagas">` (vazio) | destino do render dinâmico dos cards | RF11 (Etapa 6) |
+| `<script type="module">` | ponto de entrada dos módulos ES | RF15 |
+
+### Conceitos envolvidos
+
+- **HTML semântico**: usar a tag que *significa* a coisa (`header`, `main`, `footer`, `section`,
+  `ul`, `fieldset`) em vez de `div` para tudo. O navegador e as tecnologias assistivas entendem a
+  estrutura de graça.
+- **Landmarks**: `header`/`main`/`footer` viram "regiões de referência" que um leitor de tela lista
+  para o usuário saltar entre elas — como um índice invisível.
+- **`label`/`for` ↔ `id`**: o par mais importante de um formulário acessível. Clicar no rótulo foca o
+  campo, e o leitor de tela lê o rótulo junto do input.
+- **`fieldset` + `legend`**: o jeito semântico de agrupar campos relacionados (os checkboxes de
+  habilidades). A legenda é anunciada antes de cada opção.
+- **`aria-live="polite"`**: faz o leitor de tela **anunciar** mudanças de texto naquela região sem o
+  usuário procurar. É o que torna os 3 estados do `fetch` (Etapa 3) realmente acessíveis.
+- **Foco visível**: mantivemos o `outline` padrão (não removemos!) e reforçamos com `:focus-visible`
+  no CSS — aparece só na navegação por teclado.
+- **`<script type="module">`**: além de habilitar `import`/`export`, já roda em *strict mode* e é
+  adiado (`defer`) por padrão — executa depois do HTML carregar.
+
+> **Decisão:** os checkboxes de habilidades trazem a união das skills que aparecem no `vagas.json`
+> (HTML, CSS, JavaScript, Git, React, TypeScript, Node, Testes, Figma, Acessibilidade). Assim os
+> `value` batem com o que o `motor.js` compara, sem depender de digitação.
+
+### Como testar (no navegador — copiar e colar)
+
+Como ainda **não há CSS visual** (Etapa 7) nem JS de tela (Etapas 5–6), o teste aqui é de
+**estrutura e acessibilidade**. Dá para fazer tudo agora.
+
+**1. Abrir com Live Server** (botão direito no `index.html` → *Open with Live Server*).
+Deve aparecer: a logo, o título **SkillRadar**, o formulário (Nome, Área, as 10 habilidades, Meses,
+botão **Analisar vagas**) e o rodapé. A área "Vagas para você" fica vazia — é o esperado.
+
+**2. Teste de teclado (acessibilidade real):**
+- Clique na barra de endereço e aperte **Tab** uma vez: deve surgir o link **"Pular para o
+  conteúdo"** no canto (o *skip link*). Aperte **Enter** → o foco pula para a seção de conteúdo.
+- Continue apertando **Tab**: cada campo deve receber uma **borda azul de foco** visível, na ordem
+  natural (Nome → Área → checkboxes → Meses → botão).
+
+**3. Checagem automática — cole no Console (F12 → Console), um bloco por vez.**
+Cada bloco **se autoverifica** e imprime ✅ ou ❌:
+
+**Um único `<h1>` e landmarks presentes (RF09):**
+```js
+const h1 = document.querySelectorAll('h1').length;
+console.log(h1 === 1 ? '✅ exatamente 1 <h1>' : `❌ tem ${h1} <h1> (esperado 1)`);
+['header','main','footer'].forEach(tag =>
+  console.log(document.querySelector(tag) ? `✅ <${tag}> presente` : `❌ falta <${tag}>`)
+);
+```
+
+**Todo input/select tem rótulo associado (RF09):**
+```js
+const semRotulo = [...document.querySelectorAll('input, select')].filter(campo => {
+  const temLabel = campo.id && document.querySelector(`label[for="${campo.id}"]`);
+  return !temLabel;
+});
+console.log(semRotulo.length === 0
+  ? '✅ todos os campos têm <label for>'
+  : '❌ sem rótulo:', semRotulo);
+```
+
+**Imagem com `alt`, idioma e região de status (RF09/RF13):**
+```js
+const img = document.querySelector('img');
+console.log(img && img.alt ? `✅ <img> com alt="${img.alt}"` : '❌ <img> sem alt');
+console.log(document.documentElement.lang === 'pt-BR' ? '✅ lang="pt-BR"' : '❌ lang errado');
+const status = document.querySelector('#status[aria-live]');
+console.log(status ? '✅ região aria-live pronta p/ os 3 estados' : '❌ falta #status aria-live');
+```
+
+**Módulo ES carregou (RF15):** no Console deve aparecer, sozinho ao abrir a página:
+```
+SkillRadar: setup inicial carregado com sucesso ✅
+```
+(é o `console.log` do `main.js`, provando que o `<script type="module">` executou).
+
+**4. Acessibilidade rápida (opcional, prévia da Etapa 8):** F12 → aba **Lighthouse** → marcar só
+**Accessibility** e **SEO** → *Analyze*. A estrutura já deve pontuar alto; a auditoria completa
+(com o app pronto) fica para o cartão 8.
+
+### Pendências assumidas
+
+- **Visual/layout** (cores, espaçamento, cards bonitos): Etapa 7 (CSS mobile-first). Por ora a página
+  fica "crua" de propósito.
+- O `#status`, o `#destaque` e o `#lista-vagas` começam **vazios**: quem os preenche é o JS das
+  Etapas 5–6.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
