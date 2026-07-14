@@ -287,9 +287,37 @@ a saída — os 6 valores esperados bateram:
   apos limpar             → null (esperado null)
 ```
 
-**De verdade, no navegador (Etapa 6):** o `fetch` só funciona servido por HTTP — abrir o
-`index.html` pelo **Live Server** (não com duplo-clique `file://`, que bloqueia o fetch). No console
-(F12) dá pra testar na mão: `localStorage.getItem("skillradar:perfil")` mostra o perfil salvo.
+**De verdade, no navegador (dá para testar já):** como a tela ainda não existe (Etapa 6), o teste
+é pelo **Console** do navegador (F12), importando o módulo na mão.
+
+1. Abrir o `index.html` pelo **Live Server** (botão direito no arquivo → *Open with Live Server*).
+   ⚠️ Não abrir por duplo-clique (`file://`) — o `fetch` é bloqueado por segurança do navegador.
+2. Abrir o Console (F12 → aba *Console*) e colar, um bloco por vez:
+
+**Buscar as vagas (RF13):**
+```js
+const dados = await import('./assets/scripts/dados.js');
+const vagas = await dados.carregarVagas();
+console.table(vagas);   // deve mostrar as 6 vagas numa tabela
+```
+
+**Perfil no localStorage (RF14):**
+```js
+dados.carregarPerfil();                     // null (nada salvo ainda)
+dados.salvarPerfil({ nome: 'Diego', habilidades: ['HTML','CSS','JavaScript'] });
+dados.carregarPerfil();                     // volta o objeto salvo
+localStorage.getItem('skillradar:perfil');  // o texto cru guardado
+dados.limparPerfil();
+dados.carregarPerfil();                     // null de novo
+```
+
+**Ver o estado de erro (o `throw`):** trocar o `CAMINHO_VAGAS` no topo do `dados.js` por um arquivo
+que não existe, salvar e rodar `carregarVagas()` de novo → cai no `catch` e lança o erro.
+Lembrar de **desfazer** depois.
+
+> Detalhe: `console.table(vagas)` mostra os objetos **crus** (sem os métodos `exibirResumo`/
+> `exibirNivel`). É esperado — quem transforma cada registro em instância de classe é o `criarVagas`
+> do motor, ligado na Etapa 6.
 
 ### Dica
 
