@@ -67,7 +67,13 @@
              rótulo junto — é o par acessível mais importante de um form. -->
         <div class="campo">
           <label for="nome">Nome</label>
-          <input type="text" id="nome" name="nome" autocomplete="name" required />
+          <!-- aria-describedby liga este input ao <span> de erro abaixo:
+               o leitor de tela lê a mensagem junto com o campo. -->
+          <input type="text" id="nome" name="nome" autocomplete="name"
+                 required aria-describedby="erro-nome" />
+          <!-- role="alert" faz o texto ser ANUNCIADO assim que aparece.
+               Começa vazio; o formulario.js preenche quando dá erro. -->
+          <span id="erro-nome" class="campo__erro" role="alert"></span>
         </div>
 
         <div class="campo">
@@ -83,7 +89,8 @@
         <!-- Grupo de checkboxes: <fieldset> + <legend> é o jeito semântico
              de agrupar campos relacionados. O leitor de tela anuncia a
              legenda ("Suas habilidades") antes de cada opção do grupo. -->
-        <fieldset class="campo campo--grupo">
+        <fieldset id="grupo-habilidades" class="campo campo--grupo"
+                  aria-describedby="erro-habilidades">
           <legend>Suas habilidades</legend>
           <!-- Cada checkbox repete o padrão input + label conectados por id.
                O value é a habilidade que o motor.js vai comparar. -->
@@ -127,13 +134,17 @@
             <input type="checkbox" id="hab-a11y" name="habilidades" value="Acessibilidade" />
             <label for="hab-a11y">Acessibilidade</label>
           </div>
+          <!-- Erro do GRUPO (ex.: nenhuma habilidade marcada). -->
+          <span id="erro-habilidades" class="campo__erro" role="alert"></span>
         </fieldset>
 
         <div class="campo">
           <label for="experiencia">Experiência (em meses)</label>
           <!-- type="number" já filtra teclado numérico no celular e valida
                que é número; min="0" impede meses negativos. -->
-          <input type="number" id="experiencia" name="experiencia" min="0" step="1" value="0" />
+          <input type="number" id="experiencia" name="experiencia" min="0" step="1"
+                 value="0" aria-describedby="erro-experiencia" />
+          <span id="erro-experiencia" class="campo__erro" role="alert"></span>
         </div>
 
         <button type="submit" class="perfil__enviar">Analisar vagas</button>
