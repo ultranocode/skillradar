@@ -1,23 +1,180 @@
 <!DOCTYPE html>
+<!-- lang="pt-BR" (RF09): diz ao navegador e ao leitor de tela que o
+     conteúdo está em português — isso muda a pronúncia da voz sintética
+     e ajuda buscadores a entender o idioma da página. -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <!-- viewport (RF12): base da responsividade mobile-first. Sem isso o
+       celular "finge" ser uma tela larga e encolhe tudo. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SEO on-page (RF09) — vamos caprichar na Etapa 4 -->
-  <title>SkillRadar — encontre as vagas com sua cara</title>
-  <meta name="description" content="SkillRadar: informe suas habilidades e descubra o quanto você combina com cada vaga de front-end júnior, com recomendação de estudo." />
+  <!-- ===== SEO on-page (RF09) ===== -->
+  <!-- title: aparece na aba do navegador e é o "link azul" no Google. -->
+  <title>SkillRadar — descubra o quanto você combina com cada vaga</title>
+  <!-- description: o textinho cinza abaixo do título nos resultados de busca. -->
+  <meta name="description" content="SkillRadar: informe suas habilidades e veja o percentual de compatibilidade com vagas de front-end, com classificação e recomendação de estudo." />
 
   <link rel="stylesheet" href="./assets/styles/index.style.css" />
 </head>
 <body>
-  <!-- A estrutura semântica (header/main/footer, formulário e cards)
-       será construída na Etapa 4. Por enquanto é só um esqueleto
-       para validar que o projeto carrega. -->
-  <h1>SkillRadar</h1>
-  <p>Setup inicial concluído. 🚀</p>
+  <!-- ===== Skip link (acessibilidade) =====
+       Primeiro elemento focável da página. Quem navega por teclado
+       (Tab) pode pular o cabeçalho e ir direto ao conteúdo, sem
+       tabular por tudo. Fica escondido até receber foco (CSS na Etapa 7). -->
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-  <!-- Ponto de entrada: módulo ES (RF15). Ele vai importar motor/ui/dados. -->
+  <!-- ===== LANDMARK: header ===== -->
+  <!-- <header> é uma "região de referência" (landmark): leitores de tela
+       listam header/main/footer para o usuário navegar rápido entre elas. -->
+  <header class="cabecalho">
+    <!-- Logo via <img> com alt (RF09). O alt descreve a imagem para quem
+         não a vê; como aqui a logo REPRESENTA o nome do app, o alt traz
+         justamente o nome. -->
+    <img
+      class="cabecalho__logo"
+      src="./assets/img/logo.svg"
+      alt="SkillRadar"
+      width="48"
+      height="48"
+    />
+    <!-- RF09 — EXATAMENTE UM <h1> na página inteira. Ele é o título
+         principal; o resto da hierarquia desce em <h2>, <h3>... -->
+    <h1 class="cabecalho__titulo">SkillRadar</h1>
+    <p class="cabecalho__tagline">
+      Informe suas habilidades e veja com quais vagas você mais combina.
+    </p>
+  </header>
+
+  <!-- ===== LANDMARK: main =====
+       O #conteudo é o alvo do skip link lá de cima.
+       Só existe UM <main> por página (o conteúdo central e único). -->
+  <main id="conteudo" class="conteudo">
+
+    <!-- ---------- SEÇÃO 1: formulário de perfil ---------- -->
+    <!-- aria-labelledby liga a <section> ao seu <h2>: assim o leitor de
+         tela anuncia "região: Seu perfil" sem precisarmos repetir texto. -->
+    <section class="perfil" aria-labelledby="titulo-perfil">
+      <h2 id="titulo-perfil">Seu perfil</h2>
+
+      <!-- novalidate desliga os balões nativos do navegador: na Etapa 5
+           faremos a validação por JS, com mensagens acessíveis nossas.
+           A lógica (submit/preventDefault) entra no cartão 5 — aqui é só a marcação. -->
+      <form id="form-perfil" class="perfil__form" novalidate>
+
+        <!-- Cada campo tem <label for="..."> apontando para o id do input
+             (RF09). Clicar no label foca o campo, e o leitor de tela lê o
+             rótulo junto — é o par acessível mais importante de um form. -->
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" autocomplete="name" required />
+        </div>
+
+        <div class="campo">
+          <label for="area">Área de interesse</label>
+          <!-- <select> nativo já é acessível por teclado de graça. -->
+          <select id="area" name="area">
+            <option value="Front-End">Front-End</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="Full-Stack">Full-Stack</option>
+          </select>
+        </div>
+
+        <!-- Grupo de checkboxes: <fieldset> + <legend> é o jeito semântico
+             de agrupar campos relacionados. O leitor de tela anuncia a
+             legenda ("Suas habilidades") antes de cada opção do grupo. -->
+        <fieldset class="campo campo--grupo">
+          <legend>Suas habilidades</legend>
+          <!-- Cada checkbox repete o padrão input + label conectados por id.
+               O value é a habilidade que o motor.js vai comparar. -->
+          <div class="habilidade">
+            <input type="checkbox" id="hab-html" name="habilidades" value="HTML" />
+            <label for="hab-html">HTML</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-css" name="habilidades" value="CSS" />
+            <label for="hab-css">CSS</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-js" name="habilidades" value="JavaScript" />
+            <label for="hab-js">JavaScript</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-git" name="habilidades" value="Git" />
+            <label for="hab-git">Git</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-react" name="habilidades" value="React" />
+            <label for="hab-react">React</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-ts" name="habilidades" value="TypeScript" />
+            <label for="hab-ts">TypeScript</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-node" name="habilidades" value="Node" />
+            <label for="hab-node">Node</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-testes" name="habilidades" value="Testes" />
+            <label for="hab-testes">Testes</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-figma" name="habilidades" value="Figma" />
+            <label for="hab-figma">Figma</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-a11y" name="habilidades" value="Acessibilidade" />
+            <label for="hab-a11y">Acessibilidade</label>
+          </div>
+        </fieldset>
+
+        <div class="campo">
+          <label for="experiencia">Experiência (em meses)</label>
+          <!-- type="number" já filtra teclado numérico no celular e valida
+               que é número; min="0" impede meses negativos. -->
+          <input type="number" id="experiencia" name="experiencia" min="0" step="1" value="0" />
+        </div>
+
+        <button type="submit" class="perfil__enviar">Analisar vagas</button>
+      </form>
+    </section>
+
+    <!-- ---------- SEÇÃO 2: resultados ---------- -->
+    <section class="resultados" aria-labelledby="titulo-resultados">
+      <h2 id="titulo-resultados">Vagas para você</h2>
+
+      <!-- Região de STATUS (RF13): aqui o main.js escreve "Carregando…",
+           "Nenhuma vaga encontrada" ou a mensagem de erro.
+           role="status" + aria-live="polite" fazem o leitor de tela
+           ANUNCIAR a mudança de texto sem o usuário precisar procurar —
+           é o coração da acessibilidade dos 3 estados.
+           Começa vazio; quem preenche é o JS. -->
+      <p id="status" class="resultados__status" role="status" aria-live="polite"></p>
+
+      <!-- Bloco de destaque: melhor vaga + recomendação de estudo (RF05).
+           O JS preenche depois; começa oculto para não anunciar vazio. -->
+      <div id="destaque" class="resultados__destaque" hidden></div>
+
+      <!-- "Buraco" onde o ui.js (Etapa 6) vai injetar os cards das vagas
+           com createElement. Uso <ul> porque é uma LISTA de vagas — o
+           leitor de tela anuncia "lista com N itens". Começa vazio. -->
+      <ul id="lista-vagas" class="resultados__lista"></ul>
+    </section>
+
+  </main>
+
+  <!-- ===== LANDMARK: footer ===== -->
+  <footer class="rodape">
+    <p>
+      SkillRadar · Projeto avaliativo do Módulo 01 — Front-End React T2.
+      Feito por Diego da Costa.
+    </p>
+  </footer>
+
+  <!-- Ponto de entrada único (RF15). type="module" habilita import/export
+       nos nossos .js e já roda em modo estrito. O main.js importa
+       motor/dados/ui e coordena tudo (a partir da Etapa 6). -->
   <script type="module" src="./assets/scripts/main.js"></script>
 </body>
 </html>
