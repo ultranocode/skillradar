@@ -440,6 +440,123 @@ SkillRadar: setup inicial carregado com sucesso ✅
 
 ---
 
+## Etapa 5 — Formulário de perfil: validação + eventos (`formulario.js`)
+
+**Branch:** `feature/formulario` · **Cartão 5** · **RF10 + RF01 + RF14**
+
+Dei **vida** ao formulário que a Etapa 4 deixou pronto (estrutura). Agora, ao clicar em
+**Analisar vagas**, o JavaScript intercepta o envio, valida cada campo com mensagens **acessíveis**,
+foca o primeiro campo com problema e — quando está tudo certo — monta o objeto `perfil` e o
+**salva no `localStorage`**. A análise das vagas em si ainda é a Etapa 6; aqui garantimos que a
+entrada do usuário é válida e persistida.
+
+Criei o módulo `assets/scripts/formulario.js` (uma responsabilidade só: captura do perfil) e liguei
+ele no `main.js`. Também adicionei os "slots" de erro no `index.html` e um bloco mínimo de CSS.
+
+### O que cada parte faz (e qual RF cumpre)
+
+| Trecho | Papel | RF |
+|---|---|---|
+| `addEventListener("submit", …)` + `preventDefault()` | intercepta o envio **sem recarregar** a página | RF10 |
+| `validar()` — regra por regra | nome não-vazio · ≥1 habilidade · experiência ≥ 0 | RF10 |
+| `<span role="alert">` + `aria-invalid` + `aria-describedby` | erro **anunciado** pelo leitor de tela | RF10 |
+| `camposInvalidos[0].focus()` | manda o foco pro **1º** campo com erro | RF10 |
+| `montarPerfil()` | objeto `{ nome, area, habilidades[], experiencia }` | RF01 |
+| `salvarPerfil(perfil)` (do `dados.js`) | grava no `localStorage` (`skillradar:perfil`) | RF14 |
+| callback `aoEnviarPerfil` | avisa o `main.js` que há perfil válido (fluxo real na Etapa 6) | — |
+
+### Conceitos envolvidos
+
+- **Eventos + `preventDefault()`**: o comportamento padrão de um `<form>` é recarregar/navegar ao
+  enviar. `preventDefault()` cancela isso pra o **nosso** JavaScript assumir. É o coração do RF10.
+- **`form.requestSubmit()` vs `form.submit()`**: usamos `requestSubmit()` nos testes porque ele
+  **dispara** o evento `submit` (passa pela nossa validação); `form.submit()` puro **pula** o evento.
+- **Validação acessível ≠ só `required`**: como colocamos `novalidate` na Etapa 4, os balões nativos
+  ficam desligados e nós controlamos tudo. Três peças de ARIA trabalham juntas:
+  - `aria-describedby="erro-nome"` liga o campo à sua mensagem (o leitor lê as duas coisas juntas);
+  - `role="alert"` no `<span>` faz a mensagem ser **anunciada** assim que aparece;
+  - `aria-invalid="true"` marca o campo como inválido pra tecnologia assistiva.
+- **Gerenciamento de foco**: mandar o foco pro 1º campo inválido é acessibilidade de verdade — o
+  usuário de teclado/leitor de tela vai **direto** ao problema, sem caçar. Detalhe fino: o `<fieldset>`
+  não recebe foco, então o alvo do foco do grupo de habilidades é o **primeiro checkbox**.
+- **Cor nunca é o único sinal**: o erro tem **texto** (principal) + borda vermelha (reforço). Quem não
+  distingue a cor ainda recebe a mensagem escrita.
+- **Separação de responsabilidades**: `formulario.js` valida e salva, mas **não** conhece o `motor.js`
+  nem desenha nada. Ele avisa o `main.js` por um **callback** — na Etapa 6 esse callback vira o fluxo
+  real (carregar vagas → analisar → renderizar). O formato do `perfil` já bate com o que o `motor.js`
+  espera (`candidato.habilidades`).
+
+### Como testar (no navegador — copiar e colar)
+
+**1. Abrir com Live Server** e abrir o Console (**F12 → Console**).
+
+**2. Teste manual de teclado (o mais importante):**
+- **Apague o Nome**, **desmarque todas as habilidades** e clique em **Analisar vagas** (ou tecle
+  **Enter** dentro do form). Devem surgir as mensagens vermelhas **"Informe seu nome."** e
+  **"Selecione ao menos uma habilidade."**, e o **foco pula pro campo Nome** (borda azul de foco).
+- Digite um nome, marque 1+ habilidade e envie de novo: some o erro e aparece a **confirmação** na
+  área "Vagas para você" (região `aria-live` — um leitor de tela anunciaria).
+
+**3. Checagem automática — cole no Console, um bloco por vez.** Cada bloco se autoverifica (✅/❌):
+
+**Enviar vazio dispara erros e foca o 1º inválido (RF10):**
+```js
+const form = document.getElementById('form-perfil');
+form.nome.value = '';
+form.querySelectorAll('input[name="habilidades"]:checked').forEach(c => (c.checked = false));
+form.requestSubmit(); // dispara o submit (passa pela validação)
+console.log(document.getElementById('erro-nome').textContent ? '✅ erro de nome apareceu' : '❌ sem erro de nome');
+console.log(document.getElementById('erro-habilidades').textContent ? '✅ erro de habilidades apareceu' : '❌ sem erro de habilidades');
+console.log(document.activeElement === form.nome ? '✅ foco foi pro 1º inválido (Nome)' : '❌ foco não foi pro Nome');
+console.log(form.nome.getAttribute('aria-invalid') === 'true' ? '✅ Nome marcado aria-invalid' : '❌ Nome sem aria-invalid');
+```
+
+**Perfil válido monta e salva no localStorage (RF01/RF14):**
+```js
+const form = document.getElementById('form-perfil');
+form.nome.value = 'Diego';
+form.area.value = 'Front-End';
+form.querySelector('#hab-html').checked = true;
+form.querySelector('#hab-css').checked = true;
+form.experiencia.value = '12';
+form.requestSubmit();
+const salvo = JSON.parse(localStorage.getItem('skillradar:perfil'));
+console.log(salvo && salvo.nome === 'Diego' && salvo.habilidades.length === 2 && salvo.experiencia === 12
+  ? '✅ perfil salvo: ' + JSON.stringify(salvo)
+  : '❌ perfil salvou errado: ' + JSON.stringify(salvo));
+console.log(document.getElementById('status').textContent.includes('Diego')
+  ? '✅ status (aria-live) anunciou a confirmação'
+  : '❌ status não atualizou');
+```
+
+**A fiação de ARIA está correta (RF10):**
+```js
+['nome','experiencia'].forEach(id => {
+  const campo = document.getElementById(id);
+  const alvo = campo.getAttribute('aria-describedby');
+  console.log(alvo && document.getElementById(alvo)
+    ? `✅ #${id} ligado ao erro (aria-describedby="${alvo}")`
+    : `❌ #${id} sem aria-describedby válido`);
+});
+const fs = document.getElementById('grupo-habilidades');
+console.log(fs && fs.getAttribute('aria-describedby') === 'erro-habilidades'
+  ? '✅ fieldset de habilidades ligado ao seu erro'
+  : '❌ fieldset sem aria-describedby');
+```
+
+**4. Limpeza (opcional):** pra recomeçar do zero, apague o perfil salvo:
+```js
+localStorage.removeItem('skillradar:perfil');
+```
+
+### Pendências assumidas
+
+- **Análise das vagas**: o callback no `main.js` hoje só confirma o perfil na tela — o fluxo real
+  (`carregarVagas` → `analisarVagas` → render dos cards) é a **Etapa 6**.
+- **Visual/layout**: o erro aparece "cru" (texto vermelho + borda). O capricho visual é a **Etapa 7**.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
