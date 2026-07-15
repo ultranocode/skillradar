@@ -43,3 +43,24 @@ body {
   outline: 3px solid #4361ee;
   outline-offset: 2px;
 }
+
+/* ==========================================================
+   Erros do formulário (Etapa 5 — validação acessível / RF10)
+   O <span role="alert"> começa vazio; quando o JS escreve nele,
+   fica visível em vermelho. Como só tem texto quando há erro, não
+   precisa esconder/mostrar via display.
+   ========================================================== */
+.campo__erro {
+  display: block;
+  color: #b00020;      /* vermelho com contraste suficiente sobre branco */
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  min-height: 1.25rem; /* reserva o espaço p/ o layout não "pular" */
+}
+
+/* Reforço visual do campo inválido, além do texto e do aria-invalid.
+   Cor sozinha nunca é o único sinal — o texto do erro é o principal. */
+[aria-invalid="true"] {
+  outline: 2px solid #b00020;
+  outline-offset: 1px;
+}
