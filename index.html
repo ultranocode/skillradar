@@ -16,6 +16,24 @@
   <meta name="description" content="SkillRadar: informe suas habilidades e veja o percentual de compatibilidade com vagas de front-end, com classificação e recomendação de estudo." />
 
   <link rel="stylesheet" href="./assets/styles/index.style.css" />
+
+  <!-- ===== BÔNUS: tema escuro sem "piscada" (no-FOUC) =====
+       Este script roda AGORA, no <head>, ANTES de a página ser pintada.
+       Se rodássemos isso só no main.js (que é module/defer), a tela apareceria
+       clara por um instante e depois trocaria para escura — a tal "piscada".
+       Aqui decidimos o tema o quanto antes: usa o que está salvo no
+       localStorage; se não houver nada salvo, respeita a preferência do
+       sistema operacional (prefers-color-scheme). A troca pelo botão e o
+       "salvar" ficam no tema.js (separação de responsabilidades). -->
+  <script>
+    (function () {
+      var salvo = localStorage.getItem("skillradar:tema");
+      var escuro = salvo
+        ? salvo === "escuro"
+        : matchMedia("(prefers-color-scheme: dark)").matches;
+      if (escuro) document.documentElement.dataset.theme = "escuro";
+    })();
+  </script>
 </head>
 <body>
   <!-- ===== Skip link (acessibilidade) =====
@@ -41,6 +59,21 @@
     <!-- RF09 — EXATAMENTE UM <h1> na página inteira. Ele é o título
          principal; o resto da hierarquia desce em <h2>, <h3>... -->
     <h1 class="cabecalho__titulo">SkillRadar</h1>
+
+    <!-- BÔNUS: botão de tema. type="button" evita que ele "envie" formulários.
+         aria-pressed diz à tecnologia assistiva se o modo escuro está LIGADO;
+         aria-label dá um nome ao botão (o ícone é só decorativo → aria-hidden).
+         O tema.js atualiza esses três (ícone, aria-pressed e aria-label). -->
+    <button
+      type="button"
+      id="btn-tema"
+      class="cabecalho__tema"
+      aria-pressed="false"
+      aria-label="Ativar tema escuro"
+    >
+      <span class="cabecalho__tema-icone" aria-hidden="true">🌙</span>
+    </button>
+
     <p class="cabecalho__tagline">
       Informe suas habilidades e veja com quais vagas você mais combina.
     </p>
