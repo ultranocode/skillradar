@@ -182,9 +182,26 @@ export function gerarRecomendacao(candidato, vagas) {
     return "Parabéns! Você atende todos os requisitos das vagas analisadas.";
   }
 
-  // Remove repetidas com Set e devolve a frase de recomendação.
-  const semDuplicatas = [...new Set(todasFaltantes)];
-  return `Priorize estudar: ${semDuplicatas.join(", ")}.`;
+  // BUG CAÇADO (RF16): antes fazíamos `[...new Set(todasFaltantes)]`, o que
+  // remove as repetidas — mas é NAS repetições que mora a FREQUÊNCIA (quantas
+  // vagas exigem aquela habilidade). Sem ela, "Priorize estudar" não prioriza
+  // nada: o que falta em 1 vaga podia aparecer na frente do que falta em 3.
+  //
+  // Correção: contar quantas vezes cada habilidade aparece como faltante e
+  // ordenar da que MAIS falta para a que menos falta.
+  // RF06 — reduce: monta um mapa "habilidade → nº de vagas em que falta".
+  const frequencia = todasFaltantes.reduce((contagem, hab) => {
+    contagem[hab] = (contagem[hab] || 0) + 1;
+    return contagem;
+  }, {});
+
+  // Object.keys já elimina as duplicatas (cada habilidade vira 1 chave);
+  // o sort usa a contagem para priorizar DE VERDADE (maior frequência antes).
+  const priorizadas = Object.keys(frequencia).sort(
+    (a, b) => frequencia[b] - frequencia[a]
+  );
+
+  return `Priorize estudar: ${priorizadas.join(", ")}.`;
 }
 
 
