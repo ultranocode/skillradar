@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!-- lang="pt-BR" (RF09): diz ao navegador e ao leitor de tela que o
+     conteúdo está em português — isso muda a pronúncia da voz sintética
+     e ajuda buscadores a entender o idioma da página. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport (RF12): base da responsividade mobile-first. Sem isso o
+       celular "finge" ser uma tela larga e encolhe tudo. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ===== SEO on-page (RF09) ===== -->
+  <!-- title: aparece na aba do navegador e é o "link azul" no Google. -->
+  <title>SkillRadar — descubra o quanto você combina com cada vaga</title>
+  <!-- description: o textinho cinza abaixo do título nos resultados de busca. -->
+  <meta name="description" content="SkillRadar: informe suas habilidades e veja o percentual de compatibilidade com vagas de front-end, com classificação e recomendação de estudo." />
+
+  <link rel="stylesheet" href="./assets/styles/index.style.css" />
+
+  <!-- ===== BÔNUS: tema escuro sem "piscada" (no-FOUC) =====
+       Este script roda AGORA, no <head>, ANTES de a página ser pintada.
+       Se rodássemos isso só no main.js (que é module/defer), a tela apareceria
+       clara por um instante e depois trocaria para escura — a tal "piscada".
+       Aqui decidimos o tema o quanto antes: usa o que está salvo no
+       localStorage; se não houver nada salvo, respeita a preferência do
+       sistema operacional (prefers-color-scheme). A troca pelo botão e o
+       "salvar" ficam no tema.js (separação de responsabilidades). -->
+  <script>
+    (function () {
+      var salvo = localStorage.getItem("skillradar:tema");
+      var escuro = salvo
+        ? salvo === "escuro"
+        : matchMedia("(prefers-color-scheme: dark)").matches;
+      if (escuro) document.documentElement.dataset.theme = "escuro";
+    })();
+  </script>
+</head>
+<body>
+  <!-- ===== Skip link (acessibilidade) =====
+       Primeiro elemento focável da página. Quem navega por teclado
+       (Tab) pode pular o cabeçalho e ir direto ao conteúdo, sem
+       tabular por tudo. Fica escondido até receber foco (CSS na Etapa 7). -->
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- ===== LANDMARK: header ===== -->
+  <!-- <header> é uma "região de referência" (landmark): leitores de tela
+       listam header/main/footer para o usuário navegar rápido entre elas. -->
+  <header class="cabecalho">
+    <!-- Logo via <img> com alt (RF09). O alt descreve a imagem para quem
+         não a vê; como aqui a logo REPRESENTA o nome do app, o alt traz
+         justamente o nome. -->
+    <img
+      class="cabecalho__logo"
+      src="./assets/img/logo.svg"
+      alt="SkillRadar"
+      width="48"
+      height="48"
+    />
+    <!-- RF09 — EXATAMENTE UM <h1> na página inteira. Ele é o título
+         principal; o resto da hierarquia desce em <h2>, <h3>... -->
+    <h1 class="cabecalho__titulo">SkillRadar</h1>
+
+    <!-- BÔNUS: botão de tema. type="button" evita que ele "envie" formulários.
+         aria-pressed diz à tecnologia assistiva se o modo escuro está LIGADO;
+         aria-label dá um nome ao botão (o ícone é só decorativo → aria-hidden).
+         O tema.js atualiza esses três (ícone, aria-pressed e aria-label). -->
+    <button
+      type="button"
+      id="btn-tema"
+      class="cabecalho__tema"
+      aria-pressed="false"
+      aria-label="Ativar tema escuro"
+    >
+      <span class="cabecalho__tema-icone" aria-hidden="true">🌙</span>
+    </button>
+
+    <p class="cabecalho__tagline">
+      Informe suas habilidades e veja com quais vagas você mais combina.
+    </p>
+  </header>
+
+  <!-- ===== LANDMARK: main =====
+       O #conteudo é o alvo do skip link lá de cima.
+       Só existe UM <main> por página (o conteúdo central e único). -->
+  <main id="conteudo" class="conteudo">
+
+    <!-- ---------- SEÇÃO 1: formulário de perfil ---------- -->
+    <!-- aria-labelledby liga a <section> ao seu <h2>: assim o leitor de
+         tela anuncia "região: Seu perfil" sem precisarmos repetir texto. -->
+    <section class="perfil" aria-labelledby="titulo-perfil">
+      <h2 id="titulo-perfil">Seu perfil</h2>
+
+      <!-- novalidate desliga os balões nativos do navegador: na Etapa 5
+           faremos a validação por JS, com mensagens acessíveis nossas.
+           A lógica (submit/preventDefault) entra no cartão 5 — aqui é só a marcação. -->
+      <form id="form-perfil" class="perfil__form" novalidate>
+
+        <!-- Cada campo tem <label for="..."> apontando para o id do input
+             (RF09). Clicar no label foca o campo, e o leitor de tela lê o
+             rótulo junto — é o par acessível mais importante de um form. -->
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <!-- aria-describedby liga este input ao <span> de erro abaixo:
+               o leitor de tela lê a mensagem junto com o campo. -->
+          <input type="text" id="nome" name="nome" autocomplete="name"
+                 required aria-describedby="erro-nome" />
+          <!-- role="alert" faz o texto ser ANUNCIADO assim que aparece.
+               Começa vazio; o formulario.js preenche quando dá erro. -->
+          <span id="erro-nome" class="campo__erro" role="alert"></span>
+        </div>
+
+        <div class="campo">
+          <label for="area">Área de interesse</label>
+          <!-- <select> nativo já é acessível por teclado de graça. -->
+          <select id="area" name="area">
+            <option value="Front-End">Front-End</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="Full-Stack">Full-Stack</option>
+          </select>
+        </div>
+
+        <!-- Grupo de checkboxes: <fieldset> + <legend> é o jeito semântico
+             de agrupar campos relacionados. O leitor de tela anuncia a
+             legenda ("Suas habilidades") antes de cada opção do grupo. -->
+        <fieldset id="grupo-habilidades" class="campo campo--grupo"
+                  aria-describedby="erro-habilidades">
+          <legend>Suas habilidades</legend>
+          <!-- Cada checkbox repete o padrão input + label conectados por id.
+               O value é a habilidade que o motor.js vai comparar. -->
+          <div class="habilidade">
+            <input type="checkbox" id="hab-html" name="habilidades" value="HTML" />
+            <label for="hab-html">HTML</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-css" name="habilidades" value="CSS" />
+            <label for="hab-css">CSS</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-js" name="habilidades" value="JavaScript" />
+            <label for="hab-js">JavaScript</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-git" name="habilidades" value="Git" />
+            <label for="hab-git">Git</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-react" name="habilidades" value="React" />
+            <label for="hab-react">React</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-ts" name="habilidades" value="TypeScript" />
+            <label for="hab-ts">TypeScript</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-node" name="habilidades" value="Node" />
+            <label for="hab-node">Node</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-testes" name="habilidades" value="Testes" />
+            <label for="hab-testes">Testes</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-figma" name="habilidades" value="Figma" />
+            <label for="hab-figma">Figma</label>
+          </div>
+          <div class="habilidade">
+            <input type="checkbox" id="hab-a11y" name="habilidades" value="Acessibilidade" />
+            <label for="hab-a11y">Acessibilidade</label>
+          </div>
+          <!-- Erro do GRUPO (ex.: nenhuma habilidade marcada). -->
+          <span id="erro-habilidades" class="campo__erro" role="alert"></span>
+        </fieldset>
+
+        <div class="campo">
+          <label for="experiencia">Experiência (em meses)</label>
+          <!-- type="number" já filtra teclado numérico no celular e valida
+               que é número; min="0" impede meses negativos. -->
+          <input type="number" id="experiencia" name="experiencia" min="0" step="1"
+                 value="0" aria-describedby="erro-experiencia" />
+          <span id="erro-experiencia" class="campo__erro" role="alert"></span>
+        </div>
+
+        <button type="submit" class="perfil__enviar">Analisar vagas</button>
+      </form>
+    </section>
+
+    <!-- ---------- SEÇÃO 2: resultados ---------- -->
+    <section class="resultados" aria-labelledby="titulo-resultados">
+      <h2 id="titulo-resultados">Vagas para você</h2>
+
+      <!-- Região de STATUS (RF13): aqui o main.js escreve "Carregando…",
+           "Nenhuma vaga encontrada" ou a mensagem de erro.
+           role="status" + aria-live="polite" fazem o leitor de tela
+           ANUNCIAR a mudança de texto sem o usuário precisar procurar —
+           é o coração da acessibilidade dos 3 estados.
+           Começa vazio; quem preenche é o JS. -->
+      <p id="status" class="resultados__status" role="status" aria-live="polite"></p>
+
+      <!-- Bloco de destaque: melhor vaga + recomendação de estudo (RF05).
+           O JS preenche depois; começa oculto para não anunciar vazio. -->
+      <div id="destaque" class="resultados__destaque" hidden></div>
+
+      <!-- "Buraco" onde o ui.js (Etapa 6) vai injetar os cards das vagas
+           com createElement. Uso <ul> porque é uma LISTA de vagas — o
+           leitor de tela anuncia "lista com N itens". Começa vazio. -->
+      <ul id="lista-vagas" class="resultados__lista"></ul>
+    </section>
+
+  </main>
+
+  <!-- ===== LANDMARK: footer ===== -->
+  <footer class="rodape">
+    <p>
+      SkillRadar · Projeto avaliativo do Módulo 01 — Front-End React T2.
+      Feito por Diego da Costa.
+    </p>
+  </footer>
+
+  <!-- Ponto de entrada único (RF15). type="module" habilita import/export
+       nos nossos .js e já roda em modo estrito. O main.js importa
+       motor/dados/ui e coordena tudo (a partir da Etapa 6). -->
+  <script type="module" src="./assets/scripts/main.js"></script>
+</body>
+</html>

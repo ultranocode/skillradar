@@ -1,0 +1,540 @@
+/* ==========================================================
+   SkillRadar — Estilos (Etapa 7)
+   ----------------------------------------------------------
+   RF12 — Responsivo MOBILE-FIRST:
+     • as regras "base" (sem @media) são pensadas para o CELULAR;
+     • os @media (min-width) só ACRESCENTAM o que a tela maior permite.
+   • Layout com FLEXBOX (proibido CSS Grid como layout).
+   • Unidades fluidas (rem, %, clamp) em vez de pixels fixos.
+   • Sem frameworks CSS — tudo escrito à mão.
+   ========================================================== */
+
+
+/* ==========================================================
+   VARIÁVEIS (Custom Properties)
+   ----------------------------------------------------------
+   Guardo cores e medidas em um lugar só. Trocar o tema depois vira
+   mudar uma linha aqui, e não caçar #hex espalhado pelo arquivo.
+   Uso com var(--nome).
+   ========================================================== */
+:root {
+  /* Cores de base */
+  --cor-fundo: #f3f4fb;          /* fundo da página (lavanda bem claro) */
+  --cor-superficie: #ffffff;     /* painéis e cards (ficam "acima" do fundo) */
+  --cor-tinta: #1a1a2e;          /* texto principal (mesmo tom do skip-link) */
+  --cor-tinta-suave: #52526b;    /* textos secundários (contraste AA sobre branco) */
+  --cor-borda: #e2e3ef;          /* linhas e contornos discretos */
+
+  /* Cor de marca (mesma do foco visível) */
+  --cor-primaria: #4361ee;
+  --cor-primaria-escura: #2f47c9;
+
+  /* Cores das 3 classificações (RF04): usadas na borda/etiqueta dos cards.
+     Todas escolhidas com contraste suficiente sobre branco. */
+  --cor-alta: #15803d;           /* verde  → Alta compatibilidade */
+  --cor-media: #b45309;          /* âmbar  → Média */
+  --cor-baixa: #b42318;          /* vermelho → Baixa */
+
+  /* Superfícies e realces tingidos (campos, etiquetas, destaque).
+     Viram variáveis para o tema escuro poder trocá-las de uma vez. */
+  --cor-campo: #ffffff;          /* fundo de inputs/select */
+  --cor-etiqueta: #f0f1f8;       /* fundo da etiqueta de nível (neutro) */
+  --cor-realce: #eef1ff;         /* fundo tingido (pílula marcada) */
+  --cor-realce-tinta: #2f47c9;   /* texto sobre o fundo tingido (azul escuro no claro) */
+  --cor-realce-borda: #d8ddff;   /* borda do bloco de destaque */
+  --grad-destaque: linear-gradient(135deg, #eef1ff, #f6f0ff); /* faixa da melhor vaga */
+  --cor-pendencia-fundo: #fdeceb; /* fundo das etiquetas "falta estudar" */
+  --cor-botao-tinta: #ffffff;    /* texto do botão primário (branco no claro) */
+
+  /* Medidas reaproveitadas */
+  --raio: 12px;                  /* cantos arredondados padrão */
+  --sombra: 0 1px 3px rgba(26, 26, 46, 0.08), 0 4px 12px rgba(26, 26, 46, 0.06);
+  --largura-max: 1100px;         /* trava a largura em telas muito largas */
+}
+
+
+/* ==========================================================
+   BÔNUS — TEMA ESCURO
+   ----------------------------------------------------------
+   Truque do mobile-first aplicado às cores: o tema claro é o "base"
+   (o :root acima). Aqui NÃO reescrevemos o app inteiro — só trocamos
+   os VALORES das mesmas variáveis quando o <html> tem data-theme="escuro".
+   Como tudo no CSS usa var(--cor-*), a página inteira se repinta sozinha.
+   Cores clareadas de propósito para manter contraste legível no escuro.
+   ========================================================== */
+:root[data-theme="escuro"] {
+  --cor-fundo: #12121c;
+  --cor-superficie: #1e1e2e;
+  --cor-tinta: #e8e8f0;
+  --cor-tinta-suave: #a9a9c0;
+  --cor-borda: #33334a;
+
+  --cor-primaria: #7c8cf8;
+  --cor-primaria-escura: #6274f0;
+
+  --cor-alta: #4ade80;
+  --cor-media: #fbbf24;
+  --cor-baixa: #f87171;
+
+  --cor-campo: #16161f;
+  --cor-etiqueta: #2a2a3d;
+  --cor-realce: #232342;
+  --cor-realce-tinta: #b9c2ff;   /* azul claro: alto contraste no fundo tingido escuro */
+  --cor-realce-borda: #3a3a55;
+  --grad-destaque: linear-gradient(135deg, #1c1c2e, #23223a);
+  --cor-pendencia-fundo: #3a1f1f;
+  /* No escuro a primária é clara → texto do botão fica ESCURO para ter contraste. */
+  --cor-botao-tinta: #12121c;
+
+  --sombra: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+
+/* ==========================================================
+   RESET mínimo
+   ----------------------------------------------------------
+   box-sizing: border-box faz padding/borda entrarem NA largura do
+   elemento — sem isso, largura 100% + padding "estoura" o layout.
+   ========================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   BASE (pensada primeiro para o celular)
+   ========================================================== */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--cor-tinta);
+  background: var(--cor-fundo);
+
+  /* Padding fluido: 1rem no celular, crescendo até 2rem em telas maiores.
+     clamp(min, ideal, max) evita ter que escrever @media só para isso. */
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+/* Títulos: um pouco mais "apertados" que o texto corrido. */
+h1, h2, h3 {
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+/* Imagens nunca estouram o container (regra de ouro do responsivo). */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+
+/* ==========================================================
+   ACESSIBILIDADE (mantida da Etapa 4 — RF09)
+   ========================================================== */
+
+/* Skip link: fica fora da tela (não some para leitores de tela),
+   e "salta" para o topo quando recebe foco pelo Tab. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  /* Banner de foco: cor FIXA e escura nos dois temas (no escuro, --cor-tinta
+     fica clara e o texto branco sumiria). Um banner escuro contrasta bem em
+     página clara e escura. */
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 var(--raio) 0;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Foco visível (RF09): NÃO removemos o outline; reforçamos.
+   :focus-visible aparece só na navegação por teclado, não no clique. */
+:focus-visible {
+  outline: 3px solid var(--cor-primaria);
+  outline-offset: 2px;
+}
+
+
+/* ==========================================================
+   LAYOUT PRINCIPAL (Flexbox)
+   ----------------------------------------------------------
+   Cabeçalho e rodapé usam a mesma largura máxima e ficam centralizados.
+   margin-inline: auto = centraliza na horizontal.
+   ========================================================== */
+.cabecalho,
+.conteudo,
+.rodape {
+  max-width: var(--largura-max);
+  margin-inline: auto;
+}
+
+/* ----- Cabeçalho ----- */
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;         /* no celular estreito, os itens quebram linha */
+  align-items: center;
+  gap: 0.25rem 0.75rem;    /* espaço vertical / horizontal entre logo e textos */
+  margin-bottom: 1.5rem;
+}
+.cabecalho__logo {
+  width: 48px;
+  height: 48px;
+}
+.cabecalho__titulo {
+  margin: 0;
+  font-size: clamp(1.6rem, 5vw, 2.2rem); /* título cresce com a tela */
+}
+/* BÔNUS: botão de tema. margin-left:auto o empurra para o canto direito da
+   primeira linha do cabeçalho (logo/título à esquerda, botão à direita).
+   É redondo e discreto; usa as variáveis, então já muda de cor com o tema. */
+.cabecalho__tema {
+  margin-left: auto;             /* joga para a direita no flex do cabeçalho */
+  flex-shrink: 0;                /* não deixa o botão "amassar" quando aperta */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 50%;
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cabecalho__tema:hover {
+  border-color: var(--cor-primaria);
+  transform: translateY(-1px);
+}
+
+/* A tagline ocupa a linha inteira abaixo (flex-basis 100% força a quebra). */
+.cabecalho__tagline {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--cor-tinta-suave);
+}
+
+/* ----- Miolo: form + resultados -----
+   MOBILE (base): empilhados em coluna. */
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ----- Rodapé ----- */
+.rodape {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cor-borda);
+  color: var(--cor-tinta-suave);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+
+/* ==========================================================
+   CARTÃO DE PAINEL (perfil e resultados compartilham o visual)
+   ----------------------------------------------------------
+   As duas <section> viram "cartões brancos" flutuando sobre o fundo.
+   ========================================================== */
+.perfil,
+.resultados {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: clamp(1rem, 3vw, 1.75rem);
+}
+.perfil h2,
+.resultados h2 {
+  font-size: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--cor-borda);
+}
+
+
+/* ==========================================================
+   FORMULÁRIO DE PERFIL
+   ----------------------------------------------------------
+   O <form> é um flex-column: cada campo é um bloco empilhado com
+   espaçamento uniforme (gap), sem margens avulsas.
+   ========================================================== */
+.perfil__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* Cada campo (label em cima, controle embaixo). */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.campo label,
+.campo legend {
+  font-weight: 600;
+}
+
+/* Inputs e select: largura total, alvo de toque confortável no celular. */
+.perfil__form input[type="text"],
+.perfil__form input[type="number"],
+.perfil__form select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;                 /* herda a fonte do body, não a do agente */
+  color: var(--cor-tinta);
+  background: var(--cor-campo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+}
+/* Realce da borda ao focar (além do outline global de foco). */
+.perfil__form input:focus,
+.perfil__form select:focus {
+  border-color: var(--cor-primaria);
+}
+
+/* ----- Grupo de habilidades (fieldset) ----- */
+.campo--grupo {
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 1rem;
+}
+.campo--grupo legend {
+  padding: 0 0.4rem;             /* "abre" espaço na moldura para a legenda */
+}
+
+/* Cada habilidade vira uma "pílula" que flui inline e QUEBRA linha sozinha
+   (inline-flex + o fieldset em block). Assim viram colunas fluidas sem Grid. */
+.habilidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.3rem 0.5rem 0 0;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;          /* pílula (bordas totalmente arredondadas) */
+  cursor: pointer;
+  user-select: none;
+}
+.habilidade label {
+  cursor: pointer;
+  font-weight: 400;
+}
+/* :has() destaca a pílula quando SEU checkbox está marcado — sinal visual
+   extra, mas o checkbox nativo continua lá (acessível). Se o navegador não
+   suportar :has(), o form segue funcionando normalmente. */
+.habilidade:has(input:checked) {
+  border-color: var(--cor-primaria);
+  background: var(--cor-realce);
+  color: var(--cor-realce-tinta);
+}
+
+/* ----- Botão enviar ----- */
+.perfil__enviar {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--cor-botao-tinta);
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.perfil__enviar:hover {
+  background: var(--cor-primaria-escura);
+}
+
+
+/* ==========================================================
+   ERROS DO FORMULÁRIO (mantido da Etapa 5 — RF10)
+   O <span role="alert"> começa vazio; quando o JS escreve nele,
+   fica visível em vermelho. Cor nunca é o único sinal — o texto manda.
+   ========================================================== */
+.campo__erro {
+  display: block;
+  color: var(--cor-baixa);       /* vermelho com contraste sobre branco */
+  font-size: 0.875rem;
+  min-height: 1.25rem;           /* reserva espaço p/ o layout não "pular" */
+}
+[aria-invalid="true"] {
+  outline: 2px solid var(--cor-baixa);
+  outline-offset: 1px;
+}
+
+
+/* ==========================================================
+   RESULTADOS — status + destaque
+   ========================================================== */
+
+/* Região de status (RF13): "Carregando…", "Nenhuma vaga…", erro. */
+.resultados__status {
+  margin: 0 0 1rem;
+  color: var(--cor-tinta-suave);
+  font-weight: 600;
+}
+
+/* Bloco de destaque da melhor vaga (RF05). Começa hidden no HTML; quando
+   o JS remove o hidden, ganha este visual de "faixa em destaque". */
+.resultados__destaque {
+  background: var(--grad-destaque);
+  border: 1px solid var(--cor-realce-borda);
+  border-radius: var(--raio);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.resultados__destaque h3 {
+  margin-top: 0;
+}
+.destaque__vaga {
+  margin: 0.25rem 0;
+  font-weight: 600;
+}
+.destaque__recomendacao {
+  margin: 0.5rem 0 0;
+  color: var(--cor-tinta-suave);
+}
+
+
+/* ==========================================================
+   LISTA DE CARDS DE VAGA (RF11)
+   ----------------------------------------------------------
+   MOBILE (base): lista em coluna, um card embaixo do outro.
+   list-style: none remove os marcadores do <ul>/<li>.
+   ========================================================== */
+.resultados__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Card individual. A borda-esquerda grossa é o "gancho" de cor por
+   classificação (pintada nas variantes --alta/--média/--baixa abaixo). */
+.vaga-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 6px solid var(--cor-borda); /* cor padrão; a variante sobrescreve */
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 1rem 1.25rem;
+}
+
+/* --- Variantes de classificação (RF04) ---
+   ATENÇÃO: o ui.js gera a classe com classificacao.toLowerCase().
+   "Média" vira "média" COM ACENTO → o seletor precisa bater exatamente. */
+.vaga-card--alta   { border-left-color: var(--cor-alta); }
+.vaga-card--média  { border-left-color: var(--cor-media); }
+.vaga-card--baixa  { border-left-color: var(--cor-baixa); }
+
+/* Cabeçalho do card */
+.vaga-card__cargo {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.vaga-card__nivel {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-tinta-suave);
+  background: var(--cor-etiqueta);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+}
+.vaga-card__empresa {
+  margin: 0.15rem 0;
+  color: var(--cor-tinta-suave);
+}
+
+/* Linha do percentual: número grande em destaque. */
+.vaga-card__compat {
+  margin: 0.25rem 0;
+}
+.vaga-card__percentual {
+  font-size: 1.25rem;
+  color: var(--cor-primaria-escura);
+}
+.vaga-card__classificacao {
+  font-weight: 600;
+}
+
+/* Bloco "Falta estudar". */
+.vaga-card__faltantes {
+  margin-top: 0.35rem;
+  font-size: 0.925rem;
+}
+.vaga-card__faltantes p {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+/* As habilidades faltantes viram etiquetas que quebram linha (flex-wrap). */
+.vaga-card__faltantes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.vaga-card__faltantes-lista li {
+  background: var(--cor-pendencia-fundo); /* fundo avermelhado suave = "pendência" */
+  color: var(--cor-baixa);
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+
+/* ==========================================================
+   RESPONSIVIDADE — o que a tela MAIOR acrescenta (RF12)
+   ----------------------------------------------------------
+   Uso min-width (mobile-first): a partir destes tamanhos, ligo layouts
+   mais ricos. Larguras em rem acompanham o zoom/fonte do usuário.
+   ========================================================== */
+
+/* --- Tablet (≈ 640px): cards de vaga passam a caber lado a lado --- */
+@media (min-width: 40rem) {
+  .resultados__lista {
+    flex-direction: row;
+    flex-wrap: wrap;             /* cards fluem e quebram conforme couberem */
+  }
+  .vaga-card {
+    /* cresce/encolhe a partir de uma base de 16rem: 1 coluna em telas
+       apertadas, 2+ quando sobra espaço. min-width:0 deixa encolher. */
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+}
+
+/* --- Desktop (≈ 960px): formulário vira barra lateral fixa --- */
+@media (min-width: 60rem) {
+  .conteudo {
+    flex-direction: row;         /* form e resultados lado a lado */
+    align-items: flex-start;     /* cada coluna com sua própria altura */
+  }
+  .perfil {
+    flex: 0 0 340px;             /* largura fixa da barra lateral */
+    position: sticky;            /* acompanha a rolagem... */
+    top: 1rem;                   /* ...parando a 1rem do topo */
+  }
+  .resultados {
+    flex: 1 1 auto;              /* ocupa todo o resto */
+    min-width: 0;                /* permite encolher (senão os cards estouram) */
+  }
+}

@@ -16,3 +16,9 @@ Desktop.ini
 
 # Arquivos temporários
 *.tmp
+
+# Testes manuais de estudo (não fazem parte da entrega)
+testes/
+
+# Roteiro pessoal do vídeo (rascunho de apoio — não faz parte da entrega)
+ROTEIRO-VIDEO.md
