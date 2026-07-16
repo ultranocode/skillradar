@@ -978,6 +978,81 @@ Documentação não roda, mas dá pra **conferir** que está tudo certo:
 
 ---
 
+## Etapa 10 — Bônus: tema claro/escuro persistido (`tema.js`)
+
+**Cartão:** `10 · Bônus (opcional)` · **Branch:** `feature/bonus-tema-escuro`
+**Requisito-alvo:** bônus (reforça `localStorage` e módulos ES; não tem RF próprio).
+
+**Objetivo:** um botão que alterna claro/escuro, **lembra** a escolha entre visitas e respeita a
+preferência do sistema na primeira vez — sem "piscar" ao carregar.
+
+### O que foi feito (4 arquivos, cada um no seu papel)
+
+1. **CSS (`index.style.css`):** o pulo do gato — **não reescrevi o app inteiro**. O tema claro é o
+   "base" no `:root`; o escuro é só um bloco `:root[data-theme="escuro"]` que **troca os valores**
+   das MESMAS variáveis. Como tudo usa `var(--cor-*)`, a página inteira se repinta sozinha.
+   - Para o escuro ficar coerente, promovi a **variáveis** 5 cores que estavam "chumbadas" (fundo
+     de input, pílula marcada, faixa de destaque, etiqueta de nível e etiquetas de "falta estudar").
+   - **Contraste (a11y):** ajustei 3 pontos que quebrariam no escuro — o **skip-link** ganhou cor
+     fixa escura (no escuro a `--cor-tinta` fica clara e o texto branco sumiria); o **texto do botão
+     enviar** virou variável (branco no claro, escuro no escuro, porque a primária clara do dark pede
+     texto escuro); e o **texto da pílula marcada** ganhou uma "tinta de realce" que inverte por tema.
+2. **HTML (`index.html`):** um **script inline no `<head>`** aplica o tema salvo **antes da primeira
+   pintura** (evita a "piscada" claro→escuro que aconteceria se isso rodasse só no `main.js`, que é
+   `defer`). E o **botão** no cabeçalho, com `aria-pressed` + `aria-label` (o ícone 🌙/☀️ é decorativo,
+   `aria-hidden`).
+3. **`tema.js` (novo módulo):** cuida só do BOTÃO — clique, alterna o `data-theme` no `<html>`,
+   **salva no `localStorage`** (chave `skillradar:tema`) e mantém ícone/`aria` em sincronia.
+4. **`main.js`:** importa e chama `initTema()` junto do `initFormulario()`.
+
+### Conceitos envolvidos
+
+- **Tema por variáveis CSS** = trocar valores num só seletor em vez de reescrever regras.
+- **FOUC (Flash of Unstyled Content)** = a "piscada"; resolvida com um script síncrono no `<head>`.
+- **`data-*` no `<html>`** = "chavinha" de estado que o CSS lê com `[data-theme="…"]`.
+- **Persistência** = mesma ideia do perfil (RF14): `localStorage` guarda a escolha.
+- **Contraste em dois temas** = a mesma variável às vezes precisa de valores opostos (texto claro no
+  escuro × escuro no claro) — por isso algumas viraram variáveis próprias.
+
+### 🧪 Receita de teste (copiar/colar — não depende do chat)
+
+> Precisa do **Live Server**.
+
+**1. Alternância e persistência (visual):**
+- [ ] Clique no botão 🌙 no cabeçalho: a página inteira vira escura e o ícone troca para ☀️.
+- [ ] Aperte **F5**: continua escura **sem piscar** claro antes (o script do `<head>` já aplicou).
+- [ ] Clique no ☀️: volta ao claro. Recarregue: continua claro.
+
+**2. Preferência do sistema (1ª visita):** no DevTools (F12) → menu **⋮** → *More tools* →
+**Rendering** → *Emulate CSS `prefers-color-scheme`* = **dark**. Depois, no Console, limpe a escolha
+e recarregue:
+```js
+localStorage.removeItem('skillradar:tema'); location.reload();
+```
+- [ ] Sem nada salvo, a página deve **abrir no escuro** (seguiu o sistema).
+
+**3. Acessibilidade do botão (Console):**
+```js
+(() => {
+  const b = document.getElementById('btn-tema');
+  const escuro = document.documentElement.dataset.theme === 'escuro';
+  const ok = b.getAttribute('aria-pressed') === String(escuro);
+  console.log(ok ? '✅ aria-pressed reflete o tema atual' : '❌ aria-pressed fora de sincronia');
+  console.log('aria-label:', b.getAttribute('aria-label'));
+})();
+```
+
+**4. Lighthouse no escuro (recomendado):** ative o tema escuro, envie o formulário e rode o
+Lighthouse de novo (Mobile). A meta é **manter Accessibility 100** — os contrastes do escuro foram
+ajustados justamente para isso.
+
+### Pendência assumida
+
+- **Deploy no GitHub Pages** (o outro bônus escolhido) é a próxima parte desta etapa — feito após o
+  merge, publicando o site e colocando o link no README.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o

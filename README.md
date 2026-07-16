@@ -25,6 +25,8 @@ Projeto Avaliativo Final do **Módulo 01 — Front-End React (Turma T2)**.
 - Destaca a **melhor combinação** e gera uma **recomendação de estudo** priorizada pelo que mais
   falta entre as vagas.
 - Renderiza os resultados como **cards dinâmicos**, com layout **responsivo mobile-first**.
+- ⭐ **Bônus:** **tema claro/escuro** com um clique, que **lembra** sua escolha (`localStorage`) e
+  respeita a preferência do sistema na primeira visita.
 
 ## 🚀 Como executar
 
@@ -135,6 +137,7 @@ skillradar/
     │   ├── motor.js          # regras (compatibilidade, POO)
     │   ├── ui.js             # tela (DOM/eventos)
     │   ├── formulario.js     # captura + validação do perfil
+    │   ├── tema.js           # ⭐ bônus: alternador de tema claro/escuro
     │   └── dados.js          # fetch + localStorage
     ├── dados/vagas.json      # catálogo de vagas
     └── img/logo.svg

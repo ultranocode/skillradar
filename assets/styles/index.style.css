@@ -35,10 +35,58 @@
   --cor-media: #b45309;          /* âmbar  → Média */
   --cor-baixa: #b42318;          /* vermelho → Baixa */
 
+  /* Superfícies e realces tingidos (campos, etiquetas, destaque).
+     Viram variáveis para o tema escuro poder trocá-las de uma vez. */
+  --cor-campo: #ffffff;          /* fundo de inputs/select */
+  --cor-etiqueta: #f0f1f8;       /* fundo da etiqueta de nível (neutro) */
+  --cor-realce: #eef1ff;         /* fundo tingido (pílula marcada) */
+  --cor-realce-tinta: #2f47c9;   /* texto sobre o fundo tingido (azul escuro no claro) */
+  --cor-realce-borda: #d8ddff;   /* borda do bloco de destaque */
+  --grad-destaque: linear-gradient(135deg, #eef1ff, #f6f0ff); /* faixa da melhor vaga */
+  --cor-pendencia-fundo: #fdeceb; /* fundo das etiquetas "falta estudar" */
+  --cor-botao-tinta: #ffffff;    /* texto do botão primário (branco no claro) */
+
   /* Medidas reaproveitadas */
   --raio: 12px;                  /* cantos arredondados padrão */
   --sombra: 0 1px 3px rgba(26, 26, 46, 0.08), 0 4px 12px rgba(26, 26, 46, 0.06);
   --largura-max: 1100px;         /* trava a largura em telas muito largas */
+}
+
+
+/* ==========================================================
+   BÔNUS — TEMA ESCURO
+   ----------------------------------------------------------
+   Truque do mobile-first aplicado às cores: o tema claro é o "base"
+   (o :root acima). Aqui NÃO reescrevemos o app inteiro — só trocamos
+   os VALORES das mesmas variáveis quando o <html> tem data-theme="escuro".
+   Como tudo no CSS usa var(--cor-*), a página inteira se repinta sozinha.
+   Cores clareadas de propósito para manter contraste legível no escuro.
+   ========================================================== */
+:root[data-theme="escuro"] {
+  --cor-fundo: #12121c;
+  --cor-superficie: #1e1e2e;
+  --cor-tinta: #e8e8f0;
+  --cor-tinta-suave: #a9a9c0;
+  --cor-borda: #33334a;
+
+  --cor-primaria: #7c8cf8;
+  --cor-primaria-escura: #6274f0;
+
+  --cor-alta: #4ade80;
+  --cor-media: #fbbf24;
+  --cor-baixa: #f87171;
+
+  --cor-campo: #16161f;
+  --cor-etiqueta: #2a2a3d;
+  --cor-realce: #232342;
+  --cor-realce-tinta: #b9c2ff;   /* azul claro: alto contraste no fundo tingido escuro */
+  --cor-realce-borda: #3a3a55;
+  --grad-destaque: linear-gradient(135deg, #1c1c2e, #23223a);
+  --cor-pendencia-fundo: #3a1f1f;
+  /* No escuro a primária é clara → texto do botão fica ESCURO para ter contraste. */
+  --cor-botao-tinta: #12121c;
+
+  --sombra: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -93,7 +141,10 @@ img {
   position: absolute;
   left: -9999px;
   top: 0;
-  background: var(--cor-tinta);
+  /* Banner de foco: cor FIXA e escura nos dois temas (no escuro, --cor-tinta
+     fica clara e o texto branco sumiria). Um banner escuro contrasta bem em
+     página clara e escura. */
+  background: #1a1a2e;
   color: #fff;
   padding: 0.5rem 1rem;
   border-radius: 0 0 var(--raio) 0;
@@ -140,6 +191,31 @@ img {
   margin: 0;
   font-size: clamp(1.6rem, 5vw, 2.2rem); /* título cresce com a tela */
 }
+/* BÔNUS: botão de tema. margin-left:auto o empurra para o canto direito da
+   primeira linha do cabeçalho (logo/título à esquerda, botão à direita).
+   É redondo e discreto; usa as variáveis, então já muda de cor com o tema. */
+.cabecalho__tema {
+  margin-left: auto;             /* joga para a direita no flex do cabeçalho */
+  flex-shrink: 0;                /* não deixa o botão "amassar" quando aperta */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 50%;
+  background: var(--cor-superficie);
+  color: var(--cor-tinta);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cabecalho__tema:hover {
+  border-color: var(--cor-primaria);
+  transform: translateY(-1px);
+}
+
 /* A tagline ocupa a linha inteira abaixo (flex-basis 100% força a quebra). */
 .cabecalho__tagline {
   flex-basis: 100%;
@@ -218,7 +294,7 @@ img {
   padding: 0.6rem 0.75rem;
   font: inherit;                 /* herda a fonte do body, não a do agente */
   color: var(--cor-tinta);
-  background: #fff;
+  background: var(--cor-campo);
   border: 1px solid var(--cor-borda);
   border-radius: 8px;
 }
@@ -260,8 +336,8 @@ img {
    suportar :has(), o form segue funcionando normalmente. */
 .habilidade:has(input:checked) {
   border-color: var(--cor-primaria);
-  background: #eef1ff;
-  color: var(--cor-primaria-escura);
+  background: var(--cor-realce);
+  color: var(--cor-realce-tinta);
 }
 
 /* ----- Botão enviar ----- */
@@ -269,7 +345,7 @@ img {
   padding: 0.75rem 1rem;
   font: inherit;
   font-weight: 600;
-  color: #fff;
+  color: var(--cor-botao-tinta);
   background: var(--cor-primaria);
   border: none;
   border-radius: 8px;
@@ -312,8 +388,8 @@ img {
 /* Bloco de destaque da melhor vaga (RF05). Começa hidden no HTML; quando
    o JS remove o hidden, ganha este visual de "faixa em destaque". */
 .resultados__destaque {
-  background: linear-gradient(135deg, #eef1ff, #f6f0ff);
-  border: 1px solid #d8ddff;
+  background: var(--grad-destaque);
+  border: 1px solid var(--cor-realce-borda);
   border-radius: var(--raio);
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
@@ -377,7 +453,7 @@ img {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--cor-tinta-suave);
-  background: #f0f1f8;
+  background: var(--cor-etiqueta);
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
 }
@@ -417,7 +493,7 @@ img {
   gap: 0.35rem;
 }
 .vaga-card__faltantes-lista li {
-  background: #fdeceb;           /* fundo avermelhado suave = "pendência" */
+  background: var(--cor-pendencia-fundo); /* fundo avermelhado suave = "pendência" */
   color: var(--cor-baixa);
   padding: 0.15rem 0.6rem;
   border-radius: 6px;

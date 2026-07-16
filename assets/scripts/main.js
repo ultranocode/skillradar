@@ -17,6 +17,7 @@
 // ==========================================================
 
 import { initFormulario } from "./formulario.js";
+import { initTema } from "./tema.js";
 import { carregarVagas } from "./dados.js";
 import {
   criarVagas,
@@ -108,3 +109,6 @@ async function analisarEExibir(perfil) {
 // REAL. Assim o formulario.js não precisa saber nada de fetch/render:
 // ele só entrega um perfil pronto e o main decide o que fazer com ele.
 initFormulario(analisarEExibir);
+
+// BÔNUS: liga o alternador de tema claro/escuro (independente do fluxo de análise).
+initTema();
