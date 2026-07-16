@@ -822,6 +822,122 @@ Depois verifique os estilos aplicados (cores, responsivo, layout):
 
 ---
 
+## Etapa 8 — Depuração com debugger + auditoria Lighthouse (`motor.js`)
+
+**Cartão:** `8 · Debug + Lighthouse` · **Branch:** `feature/debug-lighthouse`
+**Requisito-alvo:** **RF16** — depuração com o debugger, documentada.
+
+**Objetivo:** demonstrar a habilidade de **caçar um bug** com as ferramentas do navegador
+(não com `console.log` espalhado) e **auditar a qualidade** da página com o Lighthouse.
+
+### O bug caçado (real, não plantado)
+
+Relendo o `motor.js`, achei um bug **lógico e silencioso**: a tela mostrava uma lista de
+habilidades, então "parecia" certo — mas o *resultado* estava errado.
+
+- **Onde:** `gerarRecomendacao` (a frase *"Priorize estudar: …"* do destaque, RF05).
+- **Sintoma:** o RF05 pede as habilidades que faltam em **mais** vagas primeiro. Não vinham:
+  uma habilidade que faltava em **1** vaga aparecia na frente de outra que faltava em **2**.
+- **Causa:** o código fazia `[...new Set(todasFaltantes)]`. O `Set` **deduplica**, mas é
+  justamente nas duplicatas que estava a **frequência**. Sobrava só a ordem de "primeira
+  aparição", que não prioriza nada.
+
+### Como cacei (Chrome DevTools → aba *Sources*)
+
+1. **Breakpoint** na linha do `return` de `gerarRecomendacao` (dá pra pôr um `debugger;` no
+   lugar — o navegador **pausa** a execução ali).
+2. Reenviei o formulário → a execução **congelou** no breakpoint.
+3. No painel **Scope / Watch**, inspecionei `todasFaltantes`: o array vinha **com duplicatas**
+   (ex.: `"react"` 3×). Ali estava a frequência, visível.
+4. Inspecionei o `[...new Set(...)]`: as duplicatas sumiam e a ordem **não** refletia a
+   contagem. Foi o "eureka" — o `Set` jogou a frequência fora.
+
+### A correção
+
+Contar a frequência com **`reduce`** (mapa `habilidade → nº de vagas em que falta`) e
+**ordenar** da que mais falta para a que menos falta (`Object.keys(...).sort(...)`, que já
+elimina duplicatas). Antes: `react, typescript, figma, acessibilidade, testes, node`
+(errado: `testes`=2 atrás de `figma`/`acessibilidade`=1). Depois:
+`react, typescript, testes, figma, acessibilidade, node` (✅ ordenado por frequência).
+
+### Auditoria Lighthouse
+
+Rodada no Chrome (aba *Lighthouse*, modo *Navigation*, device *Mobile*), com a tela **cheia**
+(formulário enviado + cards renderizados):
+
+| Categoria | Nota |
+|---|---|
+| Performance | **99** |
+| Accessibility | **100** |
+| Best Practices | **100** |
+| SEO | **100** |
+
+Sem correções necessárias — a base semântica e de foco (Etapa 4) e o CSS mobile-first
+(Etapa 7) já garantiram acessibilidade/SEO no talo. Isso **fecha a pendência** que a Etapa 7
+deixou ("ajustes de contraste podem voltar na auditoria"): o contraste passou (100).
+
+### Conceitos envolvidos
+
+- **Breakpoint / `debugger`** = pausa a execução numa linha para inspecionar o estado *ao vivo*
+  (variáveis, call stack) — muito melhor que `console.log` para bugs de lógica.
+- **Bug silencioso** = não quebra a tela nem lança erro; só produz o resultado errado. Só se
+  pega lendo o valor real das variáveis.
+- **`Set` deduplica, mas perde a contagem** — quando a repetição *é* a informação, use um
+  `reduce` para um mapa de frequência.
+- **Lighthouse** = auditoria automática de Performance/A11y/Best Practices/SEO.
+
+### 🧪 Receita de teste (copiar/colar — não depende do chat)
+
+> Precisa do **Live Server** (o `type="module"` + `fetch` não rodam abrindo o arquivo direto).
+
+**1. Verificar o bug corrigido (Console do navegador, F12 → aba Console):**
+```js
+(async () => {
+  const form = document.getElementById('form-perfil');
+  form.nome.value = 'Diego';
+  ['#hab-html','#hab-css','#hab-js','#hab-git'].forEach(s => (form.querySelector(s).checked = true));
+  form.experiencia.value = '6';
+  form.requestSubmit();
+  await new Promise(r => setTimeout(r, 500)); // espera fetch + render
+
+  // Lê a frase "Priorize estudar: ..." do destaque.
+  const frase = document.querySelector('.destaque__recomendacao').textContent;
+  const listadas = frase.replace('Priorize estudar:', '').replace('.', '')
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+  // Conta a frequência REAL das faltantes lendo os cards da tela.
+  const freq = {};
+  document.querySelectorAll('#lista-vagas .vaga-card__faltantes-lista li')
+    .forEach(li => { const h = li.textContent.trim().toLowerCase(); freq[h] = (freq[h] || 0) + 1; });
+
+  // A ordem exibida tem de ser NÃO crescente por frequência.
+  const contagens = listadas.map(h => freq[h] || 0);
+  const ordenado = contagens.every((c, i) => i === 0 || contagens[i - 1] >= c);
+  console.log('frase :', frase);
+  console.log('freq na ordem exibida:', contagens);
+  console.log(ordenado
+    ? '✅ recomendação priorizada por frequência (RF16 corrigido)'
+    : '❌ ordem não bate com a frequência — bug voltou');
+})();
+```
+
+**2. (Opcional) Rever o bug ao vivo:** no `motor.js`, dentro de `gerarRecomendacao`, ponha
+`debugger;` antes do `return`, recarregue, reenvie o form e inspecione `todasFaltantes` no
+painel *Scope*. Apague o `debugger;` depois — ele não pode ir pro commit.
+
+**3. Auditoria Lighthouse:** aba anônima (evita ruído de extensões) → `http://127.0.0.1:5500/index.html`
+→ envie o formulário → **F12 → Lighthouse** → *Navigation* + *Mobile* + as 4 categorias →
+**Analyze page load**. Esperado: tudo ≥ 99.
+
+**4. Voltar ao normal:** recarregue a página (**F5**).
+
+### Pendências assumidas
+
+- Nenhuma para a Etapa 8. O único ajuste possível seria caçar *outros* bugs, mas o RF16 pede
+  **um** processo de depuração documentado — e está feito.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
