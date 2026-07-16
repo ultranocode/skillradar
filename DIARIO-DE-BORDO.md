@@ -557,6 +557,163 @@ localStorage.removeItem('skillradar:perfil');
 
 ---
 
+## Etapa 6 — Render dos cards + orquestração (`ui.js` + `main.js`)
+
+**Branch:** `feature/render-cards` · **Cartão 6** · **RF11 + RF15 + RF05 + RF13 + RF08**
+
+É a etapa que **liga tudo**. Até aqui cada módulo vivia sozinho: o `motor.js` calculava (mas
+sem tela), o `dados.js` buscava (mas sem tela), o `formulario.js` capturava o perfil (e só
+confirmava com um texto temporário). Agora o **`main.js`** vira o maestro e coordena o fluxo
+real — *perfil → carregando → busca → análise → cards na tela* — enquanto o **`ui.js`** ganha
+vida como o "desenhista" que transforma dados prontos em DOM.
+
+Dois arquivos, dois papéis bem separados:
+
+- **`ui.js`** — só apresentação. Recebe dados já calculados e desenha: os 3 estados do
+  `#status` (carregando/vazio/erro), o destaque da melhor vaga e os cards (via `createElement`).
+- **`main.js`** — só orquestração. Não valida, não calcula, não mexe no DOM item a item: ele
+  **chama** cada módulo na ordem certa e trata os desvios (vazio/erro).
+
+### O que cada parte faz (e qual RF cumpre)
+
+| Trecho | Onde | Papel | RF |
+|---|---|---|---|
+| `import … from motor/dados/ui/formulario` | `main.js` | módulos ES ligando os 4 arquivos | RF15 |
+| `mostrarCarregando/Vazio/Erro()` | `ui.js` | escrevem os 3 estados no `#status` (`aria-live`) | RF13 |
+| `criarVagas(vagasCruas)` | `main.js` | fábrica: JSON cru → instâncias com métodos (POO) | RF07 |
+| `analisarVagas(perfil, vagas)` | `main.js` | compara, classifica e **ordena** por compatibilidade | RF03/RF04 |
+| `gerarRecomendacao(...)` | `main.js` | frase do que mais falta estudar | RF05 |
+| `criarCardVaga()` — `createElement` + `classList` | `ui.js` | monta cada `<li>` de vaga na mão | RF11 |
+| `renderizarDestaque()` | `ui.js` | melhor vaga + recomendação no `#destaque` | RF05 |
+| `DocumentFragment` no `renderizarAnalise()` | `ui.js` | insere todos os cards de uma vez (performance) | RF11 |
+| `criarContadorDeAnalises()` (closure) | `main.js` | conta as análises, lembrando entre envios | RF08 |
+| `finalizarAnalise(dados, callback)` | `main.js` | executa uma função passada ao fim da análise | RF08 |
+
+### Conceitos envolvidos
+
+- **Orquestração (o `main.js` como maestro)**: a lógica de negócio inteira cabe num `try/catch`
+  com um caminho feliz e dois desvios. `mostrarCarregando()` vem **antes** do `await` (o usuário
+  precisa saber que começou); lista **vazia** encerra cedo com `mostrarVazio()`; qualquer `throw`
+  do `dados.js` cai no `catch` e vira `mostrarErro()`. São exatamente os **3 estados** do RF13.
+- **Fábrica + POO na prática**: o `fetch` devolve objetos "burros" (JSON não carrega classes).
+  `criarVagas()` converte cada um numa instância de `VagaFrontEnd`, e é por isso que o `ui.js`
+  pode chamar `vaga.exibirResumo()` e `vaga.exibirNivel()` dentro do card. A herança da Etapa 2
+  "paga dividendo" aqui, na tela.
+- **`createElement` vs `innerHTML` (RF11)**: montei a **estrutura** dos cards com `createElement`
+  + `classList` (a exigência do RF11), não com `innerHTML`. Usei `innerHTML` só num ponto isolado
+  (o número do percentual), e mesmo assim interpolando **apenas valores que nós geramos** — nunca
+  texto digitado pelo usuário, o que evitaria risco de injeção (XSS).
+- **`classList` como ponte pro CSS**: cada card recebe `vaga-card--alta|media|baixa` conforme a
+  classificação. A Etapa 7 (estilos) vai usar essas classes pra pintar a borda — o JS marca o
+  "estado", o CSS decide a aparência. Boa separação.
+
+#### 🔎 `DocumentFragment` — o que é, por que usei e como
+
+Quando você faz `elementoNaTela.appendChild(card)` **dentro de um laço**, cada inserção mexe na
+árvore que já está **renderizada** na página. Isso pode forçar o navegador a recalcular layout
+(*reflow*) e repintar (*repaint*) a cada volta do laço — com 6 vagas é imperceptível, mas o
+**padrão** é ruim e não escala (imagine 500 itens).
+
+Um **`DocumentFragment`** é um contêiner **leve e "fora da tela"** (off-DOM): um saquinho na
+memória que segura elementos, mas **não faz parte** do documento visível. Enquanto eu vou
+enchendo o fragmento, **nada é renderizado** — não há reflow nenhum, porque aquilo ainda não
+está na página.
+
+Como usei, no `renderizarAnalise()` do `ui.js`:
+
+```js
+const fragmento = document.createDocumentFragment();   // saquinho off-DOM
+resultados.forEach((resultado) => {
+  fragmento.appendChild(criarCardVaga(resultado));     // enche na memória (0 reflows)
+});
+elLista.replaceChildren(fragmento);                    // 1 única inserção na tela
+```
+
+O pulo do gato é a **última linha**: `replaceChildren(fragmento)` despeja **todos** os cards no
+`<ul>` de uma vez só → o navegador recalcula o layout **uma vez**, não seis. E tem um detalhe
+elegante: ao inserir um fragmento, os **filhos** dele entram no DOM, mas o fragmento em si fica
+**vazio** (ele "esvazia" no processo) — por isso não sobra um contêiner extra no HTML final.
+Usei `replaceChildren` (em vez de `appendChild`) porque ele ainda **troca** o conteúdo antigo
+pelo novo na mesma operação — perfeito para "re-renderizar" quando o usuário reenvia o perfil.
+
+- **Closure viva (RF08)**: `criarContadorDeAnalises()` é chamada **uma vez** no topo do `main.js`
+  e devolve uma função que "lembra" a variável `total`. A cada perfil reenviado, `contarAnalise()`
+  soma +1 — dá pra ver o número subir no console. É closure em uso real, não só em teste.
+- **Callback real (RF08)**: `finalizarAnalise(resultados, fn)` executa a `fn` no fim. Aqui a `fn`
+  só loga um resumo, mas o ponto é: **quem chama decide o "o quê"** (poderia ser enviar métrica,
+  tocar som, disparar animação). Inversão de controle na prática.
+
+### Como testar (no navegador — copiar e colar)
+
+**1. Abrir com Live Server** (precisa de servidor: o `fetch` do `vagas.json` não roda com
+`file://`). Abrir o Console (**F12 → Console**).
+
+**2. Teste manual (o principal):** preencha o **Nome**, marque **HTML, CSS, JavaScript, Git** e
+clique em **Analisar vagas**. Deve aparecer o bloco **⭐ Sua melhor combinação** e uma **lista de
+6 cards**, do mais compatível (100%) ao menos (50%), cada um com percentual, classificação e o que
+falta estudar. No Console, um log **"Análise nº 1 concluída…"**.
+
+**3. Checagem automática — cole no Console, um bloco por vez.** Cada bloco se autoverifica (✅/❌).
+Os blocos são `async` porque o fluxo espera o `fetch` — por isso há um pequeno `await` antes de conferir.
+
+**Caminho feliz: 6 cards + destaque + status de sucesso (RF11/RF05/RF15):**
+```js
+(async () => {
+  const form = document.getElementById('form-perfil');
+  form.nome.value = 'Diego';
+  ['#hab-html','#hab-css','#hab-js','#hab-git'].forEach(s => (form.querySelector(s).checked = true));
+  form.experiencia.value = '6';
+  form.requestSubmit();
+  await new Promise(r => setTimeout(r, 500)); // espera fetch + render
+  const cards = document.querySelectorAll('#lista-vagas .vaga-card');
+  console.log(cards.length === 6 ? '✅ 6 cards renderizados' : `❌ vieram ${cards.length} cards`);
+  console.log(!document.getElementById('destaque').hidden ? '✅ destaque visível' : '❌ destaque oculto');
+  console.log(document.getElementById('status').textContent.includes('analisada') ? '✅ status de sucesso' : '❌ status errado');
+  console.log(document.querySelector('#lista-vagas .vaga-card--alta') ? '✅ classe de classificação aplicada (--alta)' : '❌ sem classe --alta');
+})();
+```
+
+**Closure (RF08) — rode o bloco acima 2× e veja o número da análise subir** (nº 1, depois nº 2):
+o contador "lembra" entre os envios.
+
+**Estado VAZIO (RF13) — sobrescreve o `fetch` para devolver `[]` (sem tocar em arquivo):**
+```js
+(async () => {
+  const original = window.fetch;
+  window.fetch = async () => new Response('[]', { status: 200 }); // finge lista vazia
+  document.getElementById('form-perfil').requestSubmit();         // (perfil já válido do bloco anterior)
+  await new Promise(r => setTimeout(r, 300));
+  const s = document.getElementById('status').textContent;
+  console.log(s.includes('Nenhuma') ? '✅ estado VAZIO ok' : '❌ vazio falhou: ' + s);
+  console.log(document.querySelectorAll('#lista-vagas li').length === 0 ? '✅ lista esvaziada' : '❌ lista não limpou');
+  window.fetch = original; // restaura o fetch de verdade
+})();
+```
+
+**Estado ERRO (RF13) — sobrescreve o `fetch` para devolver 404:**
+```js
+(async () => {
+  const original = window.fetch;
+  window.fetch = async () => new Response('', { status: 404 }); // finge arquivo não encontrado
+  document.getElementById('form-perfil').requestSubmit();
+  await new Promise(r => setTimeout(r, 300));
+  const s = document.getElementById('status').textContent;
+  console.log(s.includes('Não foi possível') ? '✅ estado ERRO ok' : '❌ erro falhou: ' + s);
+  window.fetch = original; // restaura
+})();
+```
+
+**4. Voltar ao normal:** recarregue a página (**F5**) para restaurar o `fetch` real e a tela limpa.
+
+### Pendências assumidas
+
+- **Visual/layout**: os cards aparecem "crus" (sem cor/espaçamento caprichado). As classes
+  (`vaga-card--alta/media/baixa`, `destaque__…`) já estão no lugar; o CSS mobile-first é a **Etapa 7**.
+- **Pré-preencher o form com o perfil salvo** (`carregarPerfil` do `dados.js`) fica como possível
+  **bônus** (cartão 10) — a persistência já grava; falta só reidratar a tela ao abrir.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
