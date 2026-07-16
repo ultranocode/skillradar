@@ -1046,10 +1046,26 @@ localStorage.removeItem('skillradar:tema'); location.reload();
 Lighthouse de novo (Mobile). A meta é **manter Accessibility 100** — os contrastes do escuro foram
 ajustados justamente para isso.
 
+### Bônus 2 — Deploy no GitHub Pages
+
+Publiquei o app como site estático no **GitHub Pages**, servindo a branch `develop` a partir da
+raiz (`/`). O app é 100% estático (HTML/CSS/JS + um `fetch` de JSON local com **caminho relativo**),
+então roda no Pages sem ajuste nenhum.
+
+- **URL ao vivo:** <https://ultranocode.github.io/skillradar/>
+- **Ponto que eu tinha levantado como risco:** o `fetch("./assets/dados/vagas.json")` é relativo à
+  PÁGINA. No Pages a página fica em `/skillradar/`, então o caminho resolve para
+  `/skillradar/assets/dados/vagas.json` — **funciona**. Confirmei com `curl`: `index.html`,
+  `vagas.json` e `tema.js` retornam **HTTP 200**.
+- **Como foi feito:** habilitei o Pages pela API do GitHub (`gh api ... /pages` com
+  `source[branch]=develop`, `source[path]=/`). Pela interface é o mesmo: **Settings → Pages →
+  Deploy from a branch → `develop` → `/ (root)` → Save**.
+- **Na entrega (Etapa 11):** depois do merge final em `main`, dá para **repontar** o Pages para a
+  `main` (Settings → Pages → trocar a branch) — o link público continua o mesmo.
+
 ### Pendência assumida
 
-- **Deploy no GitHub Pages** (o outro bônus escolhido) é a próxima parte desta etapa — feito após o
-  merge, publicando o site e colocando o link no README.
+- Nenhuma para a Etapa 10. Os dois bônus escolhidos (tema escuro + deploy) estão prontos.
 
 ---
 
