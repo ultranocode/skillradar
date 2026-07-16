@@ -938,6 +938,46 @@ painel *Scope*. Apague o `debugger;` depois — ele não pode ir pro commit.
 
 ---
 
+## Etapa 9 — README completo (`README.md`)
+
+**Cartão:** `9 · README completo` · **Branch:** `docs/readme`
+**Requisito-alvo:** documentação da entrega (não tem RF próprio, mas é item do checklist final).
+
+**Objetivo:** transformar o README "de andamento" num documento de entrega que qualquer pessoa
+(inclusive o avaliador) leia e entenda **o que é**, **como rodar** e **como foi construído**.
+
+### O que foi feito
+
+1. **Descrição + links no topo:** repositório, quadro do Trello (público) e um **placeholder do
+   vídeo** (`link em breve`) — o vídeo é gravado depois, então o link entra na Etapa 11.
+2. **"O que o app faz":** lista das funcionalidades em linguagem de usuário (não de código).
+3. **Como executar:** reforça o **porquê** do Live Server (módulos ES + `fetch` não rodam em
+   `file://` por causa do CORS) — não é capricho, é técnico.
+4. **Arquitetura dados × regras × tela:** tabela de responsabilidades (cada módulo + o que ele
+   **não** faz) e um diagrama do fluxo. É o conceito da Semana 12, que guiou a divisão dos arquivos.
+5. **Mapa de requisitos (RF01–RF16):** tabela ligando cada requisito ao arquivo onde ele vive —
+   facilita a correção e serve de "índice" do projeto.
+6. **Depuração (RF16) e Lighthouse:** trazidos da Etapa 8 (bug caçado + as notas 99/100/100/100).
+7. **Estrutura de pastas, tecnologias e autor.**
+
+### 🧪 Receita de teste (copiar/colar — não depende do chat)
+
+Documentação não roda, mas dá pra **conferir** que está tudo certo:
+
+- [ ] Abra o `README.md` no VS Code e use a **pré-visualização** (`Ctrl+Shift+V`): as tabelas e o
+      bloco de código do fluxo têm que renderizar sem quebrar.
+- [ ] No GitHub, abra a página do repositório e confira que o README aparece formatado na home.
+- [ ] Clique nos links de **Repositório** e **Trello**: ambos devem abrir (o do vídeo fica como
+      `link em breve` até a Etapa 11).
+- [ ] Confira que a tabela de RFs lista de **RF01 a RF16** sem furos.
+
+### Pendência assumida
+
+- **Link do vídeo:** único item do checklist do cartão 9 que fica em aberto até a gravação
+  (Etapa 11). Quando o vídeo estiver no Drive, é só trocar o `link em breve` pela URL.
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
