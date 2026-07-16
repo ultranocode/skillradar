@@ -35,6 +35,37 @@ skillradar/
     └── img/logo.svg
 ```
 
+## 🐛 Depuração com o debugger (RF16)
+
+Durante a Etapa 8 cacei um bug **lógico e silencioso** — a tela mostrava uma lista de
+habilidades, então "parecia" funcionar, mas o resultado estava errado.
+
+**Sintoma:** a recomendação de estudo (`gerarRecomendacao`, em `motor.js`) promete
+*"Priorize estudar: …"*, ou seja, as habilidades que faltam em **mais** vagas deveriam vir
+primeiro. Não vinham: uma habilidade que faltava em 1 vaga aparecia na frente de outra que
+faltava em 2.
+
+**Como cacei (Chrome DevTools → aba *Sources*):**
+
+1. Coloquei um **breakpoint** na linha do `return` de `gerarRecomendacao` (dá pra usar um
+   `debugger;` no lugar) e reenviei o formulário — a execução **pausou** ali.
+2. No painel **Scope/Watch**, inspecionei `todasFaltantes`: o array vinha **com duplicatas**
+   (ex.: `"react"` repetido 3×). É aí que mora a *frequência*.
+3. Inspecionei a variável seguinte (`[...new Set(todasFaltantes)]`): as duplicatas sumiam e a
+   ordem **não** refletia a contagem. Eureka — o `Set` jogava a frequência fora.
+
+**Causa:** `[...new Set(todasFaltantes)]` deduplica, mas descarta *quantas vezes* cada
+habilidade aparecia — que era exatamente o critério de prioridade.
+
+**Correção:** contar a frequência de cada habilidade (`reduce` → mapa `habilidade → nº`) e
+**ordenar** da que mais falta para a que menos falta antes de montar a frase.
+
+## 🔦 Auditoria Lighthouse
+
+Auditoria feita no Chrome DevTools (aba *Lighthouse*, modo *Navigation*, categorias
+Performance / Accessibility / Best Practices / SEO). Resultados e ajustes registrados no
+`DIARIO-DE-BORDO.md` (Etapa 8).
+
 ## 👨‍💻 Autor
 
 **Diego da Costa** — Curso de Programação Front-End React, Turma T2.
