@@ -714,6 +714,114 @@ o contador "lembra" entre os envios.
 
 ---
 
+## Etapa 7 — Estilos + responsividade mobile-first (`index.style.css`)
+
+**Cartão:** `7 · Estilos + responsividade mobile-first` · **Branch:** `feature/estilos-responsivo`
+**Requisito-alvo:** **RF12** — responsivo mobile-first com Flexbox.
+
+**Objetivo:** tirar a tela do "cru" e deixá-la apresentável e responsiva — do celular ao
+desktop — **sem framework** e **sem CSS Grid** (só Flexbox, como o cartão exige).
+
+### O que foi feito
+
+1. **Variáveis (`:root`)** — cores e medidas centralizadas em `--custom-properties`.
+   Trocar o tema depois é mudar uma linha, não caçar `#hex` pelo arquivo.
+2. **Mobile-first de verdade:** as regras "base" (sem `@media`) desenham a versão de
+   **celular** (tudo empilhado em coluna). Os `@media (min-width: …)` só **acrescentam**
+   o que a tela maior comporta.
+3. **Layout com Flexbox** (nunca Grid):
+   - `.conteudo` é `flex-direction: column` no celular e vira `row` no desktop
+     (form vira **barra lateral fixa** com `position: sticky`).
+   - `.resultados__lista` empilha no celular e usa `flex-wrap` para os cards fluírem
+     lado a lado a partir do tablet (`flex: 1 1 16rem` = 1 coluna quando aperta, 2+ quando sobra espaço).
+   - As habilidades viram **pílulas** (`inline-flex`) que quebram linha sozinhas — colunas fluidas sem Grid.
+4. **Unidades fluidas:** `clamp()` no padding e nos títulos (crescem com a tela sem `@media` extra);
+   larguras em `rem` (acompanham o zoom/fonte do usuário).
+5. **Cor por classificação (RF04):** borda-esquerda grossa nos cards.
+   ⚠️ Detalhe que quase passou batido: o `ui.js` gera a classe com `classificacao.toLowerCase()`,
+   então **"Média" vira `vaga-card--média` COM ACENTO**. O seletor CSS precisa bater exatamente
+   (`.vaga-card--média`) — por isso o arquivo está em UTF-8.
+6. **Preservado das etapas anteriores:** skip-link, `:focus-visible` (RF09) e os erros do
+   formulário (RF10) continuam lá, agora usando as variáveis de cor.
+7. **Toque extra (progressive enhancement):** `.habilidade:has(input:checked)` destaca a pílula
+   marcada. Se o navegador não suportar `:has()`, o form segue 100% funcional — é só enfeite.
+
+### Conceitos envolvidos
+
+- **Mobile-first** = escrever para o menor primeiro e ir *somando* com `min-width`
+  (o contrário, `max-width`, seria "desktop-first" — mais trabalhoso de manter).
+- **Flexbox** = layout em 1 eixo por vez (linha OU coluna), com `flex-wrap` para quebrar.
+- **`box-sizing: border-box`** = padding/borda entram *dentro* da largura (senão `100%` + padding estoura).
+- **`clamp(min, ideal, max)`** = valor fluido com trava mínima e máxima, sem `@media`.
+
+### 🧪 Receita de teste (copiar/colar — não depende do chat)
+
+> Precisa do **Live Server** (o `type="module"` + `fetch` não rodam abrindo o arquivo direto).
+
+**1. Suba o servidor:** no VS Code, botão direito no `index.html` → **"Open with Live Server"**
+(abre em `http://127.0.0.1:5500/…`).
+
+**2. Teste visual (olho):**
+- [ ] No **celular** (DevTools → ícone de celular / `Ctrl+Shift+M`, largura ~375px):
+      cabeçalho, formulário e resultados aparecem **empilhados**, sem rolagem horizontal.
+- [ ] Marque algumas habilidades: a **pílula fica azul** quando marcada.
+- [ ] Aumente a janela para **desktop** (> 960px): o **formulário vira barra lateral**
+      à esquerda (e "gruda" ao rolar) e os **cards ficam lado a lado**.
+- [ ] Clique **"Analisar vagas"**: cada card tem a **borda-esquerda colorida**
+      (verde = Alta, âmbar = Média, vermelho = Baixa).
+
+**3. Teste automático (Console do navegador, F12 → aba Console):**
+Primeiro gere os cards (perfil válido + envio):
+```js
+(async () => {
+  const form = document.getElementById('form-perfil');
+  form.nome.value = 'Diego';
+  ['#hab-html','#hab-css','#hab-js','#hab-git'].forEach(s => (form.querySelector(s).checked = true));
+  form.experiencia.value = '6';
+  form.requestSubmit();
+  await new Promise(r => setTimeout(r, 500)); // espera fetch + render
+  console.log('cards prontos — rode o bloco de verificação abaixo');
+})();
+```
+Depois verifique os estilos aplicados (cores, responsivo, layout):
+```js
+(() => {
+  // As cores esperadas por classificação (mesmas do :root, já em rgb).
+  const esperado = {
+    'vaga-card--alta':  'rgb(21, 128, 61)',   // verde
+    'vaga-card--média': 'rgb(180, 83, 9)',    // âmbar (classe COM acento!)
+    'vaga-card--baixa': 'rgb(180, 35, 24)',   // vermelho
+  };
+  let ok = true;
+  document.querySelectorAll('#lista-vagas .vaga-card').forEach((card) => {
+    const classe = [...card.classList].find((c) => c.startsWith('vaga-card--'));
+    const cor = getComputedStyle(card).borderLeftColor;
+    const bate = cor === esperado[classe];
+    if (!bate) ok = false;
+    console.log(`${bate ? '✅' : '❌'} ${classe} → borda ${cor}`);
+  });
+  console.log(ok ? '✅ todas as bordas de classificação pintaram certo (acento incluso)' : '❌ alguma borda não bateu');
+
+  // Responsivo saudável: nada pode estourar a largura da tela.
+  const semScrollX = document.documentElement.scrollWidth <= window.innerWidth;
+  console.log(semScrollX ? '✅ sem rolagem horizontal' : '❌ a página estourou na largura');
+
+  // O layout principal precisa ser Flexbox (RF12).
+  const displayMain = getComputedStyle(document.querySelector('.conteudo')).display;
+  console.log(displayMain === 'flex' ? '✅ layout flex ativo' : `❌ .conteudo não é flex (é ${displayMain})`);
+})();
+```
+
+**4. Voltar ao normal:** recarregue a página (**F5**).
+
+### Pendências assumidas
+
+- **Tema claro/escuro** (`prefers-color-scheme` + `localStorage`) fica como **bônus** (cartão 10):
+  as variáveis de cor já estão prontas no `:root`, então plugar um tema depois é barato.
+- Ajustes finos de contraste/visual podem voltar na **Etapa 8** (auditoria Lighthouse).
+
+---
+
 ## Apêndice — Configuração do MCP do Trello (ferramenta de apoio)
 
 > Isto NÃO faz parte do código do SkillRadar — é só a integração que permite montar o
