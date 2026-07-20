@@ -14,7 +14,7 @@ Projeto Avaliativo Final do **Módulo 01 — Front-End React (Turma T2)**.
 - 🌐 **App ao vivo (GitHub Pages):** <https://ultranocode.github.io/skillradar/>
 - **Repositório:** <https://github.com/ultranocode/skillradar>
 - **Quadro Trello (público):** <https://trello.com/b/wWl8w5m1/skillradar-projeto-avaliativo-m1s13>
-- 🎥 **Vídeo de apresentação (≤ 7 min):** _link em breve_
+- 🎥 **Vídeo de apresentação (≤ 7 min):** <https://drive.google.com/file/d/1liOGM1VOyJkfytd1BnOFPpE9sfw24759/view?usp=sharing>
 
 ## ✨ O que o app faz
 
